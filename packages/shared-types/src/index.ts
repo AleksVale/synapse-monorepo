@@ -1,13 +1,232 @@
 // Common types and interfaces shared across the monorepo
 
-export interface User {
-  id: string;
-  email: string;
+// ============= ENUMS =============
+export enum SaleStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  CANCELLED = 'CANCELLED',
+  REFUNDED = 'REFUNDED',
+}
+
+// ============= BASE ENTITIES =============
+export interface Role {
+  id: number;
   name: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  passwordHash: string;
+  roleId?: number;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
+  role?: Role;
+}
+
+export interface Product {
+  id: number;
+  userId?: number;
+  name: string;
+  description?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
+  user?: User;
+}
+
+export interface Integration {
+  id: number;
+  userId?: number;
+  platformName: string;
+  apiKey?: string;
+  status: string;
+  lastSyncAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  user?: User;
+}
+
+export interface AdCampaign {
+  id: number;
+  integrationId?: number;
+  productId?: number;
+  platformCampaignId?: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId?: number;
+  user?: User;
+  integration?: Integration;
+  product?: Product;
+}
+
+export interface DailyAdMetric {
+  id: number;
+  campaignId?: number;
+  date: Date;
+  spend: number;
+  clicks: number;
+  impressions: number;
+  conversions: number;
+  createdAt: Date;
+  updatedAt: Date;
+  userId?: number;
+  user?: User;
+  campaign?: AdCampaign;
+}
+
+export interface Sale {
+  id: number;
+  productId?: number;
+  integrationId?: number;
+  platformSaleId?: string;
+  status: SaleStatus;
+  amount: number;
+  currency: string;
+  customerName?: string;
+  customerEmail?: string;
+  saleDate?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  product?: Product;
+}
+
+export interface AuditLog {
+  id: number;
+  userId?: number;
+  action: string;
+  details?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  user?: User;
+}
+
+// ============= DTOs =============
+export interface CreateRoleDto {
+  name: string;
+}
+
+export interface UpdateRoleDto {
+  name?: string;
+}
+
+export interface CreateUserDto {
+  name: string;
+  email: string;
+  password: string;
+  roleId?: number;
+}
+
+export interface UpdateUserDto {
+  name?: string;
+  email?: string;
+  password?: string;
+  roleId?: number;
+}
+
+export interface CreateProductDto {
+  name: string;
+  description?: string;
+  userId?: number;
+}
+
+export interface UpdateProductDto {
+  name?: string;
+  description?: string;
+}
+
+export interface CreateIntegrationDto {
+  platformName: string;
+  apiKey?: string;
+  status: string;
+  userId?: number;
+}
+
+export interface UpdateIntegrationDto {
+  platformName?: string;
+  apiKey?: string;
+  status?: string;
+  lastSyncAt?: Date;
+}
+
+export interface CreateAdCampaignDto {
+  integrationId?: number;
+  productId?: number;
+  platformCampaignId?: string;
+  name: string;
+  userId?: number;
+}
+
+export interface UpdateAdCampaignDto {
+  integrationId?: number;
+  productId?: number;
+  platformCampaignId?: string;
+  name?: string;
+}
+
+export interface CreateDailyAdMetricDto {
+  campaignId?: number;
+  date: Date;
+  spend: number;
+  clicks: number;
+  impressions: number;
+  conversions: number;
+  userId?: number;
+}
+
+export interface UpdateDailyAdMetricDto {
+  spend?: number;
+  clicks?: number;
+  impressions?: number;
+  conversions?: number;
+}
+
+export interface CreateSaleDto {
+  productId?: number;
+  integrationId?: number;
+  platformSaleId?: string;
+  status: SaleStatus;
+  amount: number;
+  currency: string;
+  customerName?: string;
+  customerEmail?: string;
+  saleDate?: Date;
+}
+
+export interface UpdateSaleDto {
+  status?: SaleStatus;
+  amount?: number;
+  currency?: string;
+  customerName?: string;
+  customerEmail?: string;
+  saleDate?: Date;
+}
+
+export interface CreateAuditLogDto {
+  userId?: number;
+  action: string;
+  details?: string;
+}
+
+// ============= AUTH DTOs =============
+export interface LoginDto {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse extends ApiResponse {
+  data: {
+    user: User;
+    token: string;
+  };
+}
+
+// ============= COMMON RESPONSE TYPES =============
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
@@ -24,30 +243,38 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
   };
 }
 
-export interface CreateUserDto {
-  email: string;
-  name: string;
-  password: string;
-}
-
-export interface UpdateUserDto {
-  email?: string;
-  name?: string;
-}
-
-export interface LoginDto {
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse extends ApiResponse {
-  data: {
-    user: User;
-    token: string;
+// ============= ANALYTICS TYPES =============
+export interface CampaignAnalytics {
+  campaign: AdCampaign;
+  totalSpend: number;
+  totalClicks: number;
+  totalImpressions: number;
+  totalConversions: number;
+  ctr: number; // Click Through Rate
+  cpc: number; // Cost Per Click
+  cpm: number; // Cost Per Mille
+  conversionRate: number;
+  costPerConversion: number;
+  dateRange: {
+    start: Date;
+    end: Date;
   };
 }
 
-// HTTP Status Codes
+export interface SalesAnalytics {
+  product: Product;
+  totalSales: number;
+  totalRevenue: number;
+  averageOrderValue: number;
+  conversionRate: number;
+  salesByStatus: Record<SaleStatus, number>;
+  dateRange: {
+    start: Date;
+    end: Date;
+  };
+}
+
+// ============= HTTP STATUS CODES =============
 export enum HttpStatusCode {
   OK = 200,
   CREATED = 201,
@@ -58,7 +285,7 @@ export enum HttpStatusCode {
   INTERNAL_SERVER_ERROR = 500,
 }
 
-// API Endpoints
+// ============= API ENDPOINTS =============
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/auth/login',
@@ -68,7 +295,43 @@ export const API_ENDPOINTS = {
   },
   USERS: {
     BASE: '/users',
-    BY_ID: (id: string) => `/users/${id}`,
+    BY_ID: (id: number) => `/users/${id}`,
     PROFILE: '/users/profile',
+  },
+  ROLES: {
+    BASE: '/roles',
+    BY_ID: (id: number) => `/roles/${id}`,
+  },
+  PRODUCTS: {
+    BASE: '/products',
+    BY_ID: (id: number) => `/products/${id}`,
+    BY_USER: (userId: number) => `/products/user/${userId}`,
+  },
+  INTEGRATIONS: {
+    BASE: '/integrations',
+    BY_ID: (id: number) => `/integrations/${id}`,
+    BY_USER: (userId: number) => `/integrations/user/${userId}`,
+    SYNC: (id: number) => `/integrations/${id}/sync`,
+  },
+  CAMPAIGNS: {
+    BASE: '/campaigns',
+    BY_ID: (id: number) => `/campaigns/${id}`,
+    BY_PRODUCT: (productId: number) => `/campaigns/product/${productId}`,
+    ANALYTICS: (id: number) => `/campaigns/${id}/analytics`,
+  },
+  METRICS: {
+    BASE: '/metrics',
+    BY_ID: (id: number) => `/metrics/${id}`,
+    BY_CAMPAIGN: (campaignId: number) => `/metrics/campaign/${campaignId}`,
+  },
+  SALES: {
+    BASE: '/sales',
+    BY_ID: (id: number) => `/sales/${id}`,
+    BY_PRODUCT: (productId: number) => `/sales/product/${productId}`,
+    ANALYTICS: (productId: number) => `/sales/product/${productId}/analytics`,
+  },
+  AUDIT_LOGS: {
+    BASE: '/audit-logs',
+    BY_USER: (userId: number) => `/audit-logs/user/${userId}`,
   },
 } as const;

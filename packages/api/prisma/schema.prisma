@@ -1,0 +1,159 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SaleStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  REFUNDED
+}
+
+model Role {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String    @db.VarChar(255)
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  roleId       Int?      @map("role_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  // Relations
+  role           Role?           @relation(fields: [roleId], references: [id])
+  adCampaigns    AdCampaign[]    @relation("UserAdCampaigns")
+  products       Product[]
+  integrations   Integration[]
+  dailyAdMetrics DailyAdMetric[]
+  auditLogs      AuditLog[]
+
+  @@map("users")
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  userId      Int?      @map("user_id")
+  name        String    @db.VarChar(255)
+  description String?   @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Relations
+  user        User?        @relation(fields: [userId], references: [id])
+  adCampaigns AdCampaign[]
+  sales       Sale[]
+
+  @@map("products")
+}
+
+model Integration {
+  id           Int       @id @default(autoincrement())
+  userId       Int?      @map("user_id")
+  platformName String    @map("platform_name") @db.VarChar(100)
+  apiKey       String?   @map("api_key") @db.Text
+  status       String    @db.VarChar(50)
+  lastSyncAt   DateTime? @map("last_sync_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user        User?        @relation(fields: [userId], references: [id])
+  adCampaigns AdCampaign[]
+
+  @@map("integrations")
+}
+
+model AdCampaign {
+  id                 Int      @id @default(autoincrement())
+  integrationId      Int?     @map("integration_id")
+  productId          Int?     @map("product_id")
+  platformCampaignId String?  @map("platform_campaign_id") @db.VarChar(255)
+  name               String   @db.VarChar(255)
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  userId             Int?     @map("user_id")
+
+  // Relations
+  user           User?           @relation("UserAdCampaigns", fields: [userId], references: [id])
+  integration    Integration?    @relation(fields: [integrationId], references: [id])
+  product        Product?        @relation(fields: [productId], references: [id])
+  dailyAdMetrics DailyAdMetric[]
+
+  @@map("ad_campaigns")
+}
+
+model DailyAdMetric {
+  id          Int      @id @default(autoincrement())
+  campaignId  Int?     @map("campaign_id")
+  date        DateTime @db.Date
+  spend       Decimal  @db.Decimal(10, 2)
+  clicks      Int
+  impressions Int
+  conversions Int
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  userId      Int?     @map("user_id")
+
+  // Relations
+  user     User?       @relation(fields: [userId], references: [id])
+  campaign AdCampaign? @relation(fields: [campaignId], references: [id])
+
+  @@unique([campaignId, date])
+  @@map("daily_ad_metrics")
+}
+
+model Sale {
+  id             Int        @id @default(autoincrement())
+  productId      Int?       @map("product_id")
+  integrationId  Int?       @map("integration_id")
+  platformSaleId String?    @map("platform_sale_id") @db.VarChar(255)
+  status         SaleStatus
+  amount         Decimal    @db.Decimal(10, 2)
+  currency       String     @db.VarChar(10)
+  customerName   String?    @map("customer_name") @db.VarChar(255)
+  customerEmail  String?    @map("customer_email") @db.VarChar(255)
+  saleDate       DateTime?  @map("sale_date")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  product Product? @relation(fields: [productId], references: [id])
+
+  @@map("sales")
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?     @map("user_id")
+  action    String   @db.VarChar(255)
+  details   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
