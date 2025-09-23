@@ -1,15 +1,35 @@
 {
   "name": "synapse-monorepo",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Synapse monorepo with React/Vite web app, NestJS API and shared types",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm run build --workspaces",
+    "dev": "concurrently \"npm run dev -w @synapse/api\" \"npm run dev -w @synapse/web\"",
+    "dev:web": "npm run dev -w @synapse/web",
+    "dev:api": "npm run dev -w @synapse/api",
+    "start": "npm run start --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "lint:fix": "npm run lint:fix --workspaces",
+    "clean": "npm run clean --workspaces && rm -rf node_modules",
+    "type-check": "npm run type-check --workspaces",
+    "install:all": "npm install && npm install --workspaces"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.0",
+    "eslint": "^8.55.0",
+    "prettier": "^3.1.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0"
+  },
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
 }

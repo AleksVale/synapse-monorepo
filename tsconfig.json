@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": false,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "@synapse/shared-types": ["packages/shared-types/src"],
+      "@synapse/shared-types/*": ["packages/shared-types/src/*"]
+    }
+  },
+  "include": [
+    "packages/*/src/**/*",
+    "packages/*/test/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage"
+  ],
+  "references": [
+    {
+      "path": "./packages/shared-types"
+    },
+    {
+      "path": "./packages/api"
+    },
+    {
+      "path": "./packages/web"
+    }
+  ]
+}
