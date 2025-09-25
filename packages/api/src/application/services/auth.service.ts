@@ -1,11 +1,11 @@
-import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import {
-  User,
-  LoginDto,
-  CreateUserDto,
-  AuthResponse,
   ApiResponse,
+  AuthResponse,
+  CreateUserDto,
+  LoginDto,
+  User,
 } from '@synapse/shared-types';
 import type { IUserRepository } from '../../domain/interfaces/repositories.interface';
 import { CryptoService } from './crypto.service';

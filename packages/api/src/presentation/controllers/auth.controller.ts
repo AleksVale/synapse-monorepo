@@ -1,23 +1,23 @@
 import {
-  Controller,
-  Post,
-  Get,
   Body,
-  UseGuards,
+  Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  Post,
+  UseGuards,
 } from '@nestjs/common';
 import type {
-  LoginDto,
-  CreateUserDto,
-  AuthResponse,
   ApiResponse,
+  AuthResponse,
+  CreateUserDto,
+  LoginDto,
   User,
 } from '@synapse/shared-types';
 import { AuthService } from '../../application/services/auth.service';
-import { LocalAuthGuard } from '../../infrastructure/auth/local-auth.guard';
-import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { CurrentUser } from '../../infrastructure/auth/current-user.decorator';
+import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
+import { LocalAuthGuard } from '../../infrastructure/auth/local-auth.guard';
 
 @Controller('auth')
 export class AuthController {
