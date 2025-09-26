@@ -59,7 +59,16 @@ export class AuthService {
     const token = this.jwtService.sign(payload);
 
     // Remove password hash from user response
-    const { passwordHash, ...userResponse } = user;
+    const userResponse = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      roleId: user.roleId,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      deletedAt: user.deletedAt,
+      role: user.role,
+    };
 
     return {
       success: true,
@@ -96,7 +105,16 @@ export class AuthService {
     });
 
     // Remove password hash from response
-    const { passwordHash, ...userResponse } = user;
+    const userResponse = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      roleId: user.roleId,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      deletedAt: user.deletedAt,
+      role: user.role,
+    };
 
     return {
       success: true,
