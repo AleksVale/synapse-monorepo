@@ -40,20 +40,17 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  async getProfile(@CurrentUser() user: User): Promise<ApiResponse<User>> {
-    // Remove password hash from response
-    const { passwordHash, ...userResponse } = user;
-
+  getProfile(@CurrentUser() user: User): ApiResponse<User> {
     return {
       success: true,
-      data: userResponse as User,
+      data: user,
       message: 'Profile retrieved successfully',
     };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getCurrentUser(@CurrentUser() user: User): Promise<ApiResponse<User>> {
+  getCurrentUser(@CurrentUser() user: User): ApiResponse<User> {
     return {
       success: true,
       data: user,
