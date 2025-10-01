@@ -21,10 +21,7 @@ import { LocalStrategy } from './local.strategy';
     CryptoService,
     LocalStrategy,
     JwtStrategy,
-    {
-      provide: 'IUserRepository',
-      useClass: UserRepository,
-    },
+    UserRepository,
   ],
   controllers: [AuthController],
   exports: [AuthService, CryptoService],

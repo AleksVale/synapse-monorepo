@@ -7,17 +7,12 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import type {
-  ApiResponse,
-  AuthResponse,
-  CreateUserDto,
-  LoginDto,
-  User,
-} from '@synapse/shared-types';
+import type { ApiResponse, AuthResponse, User } from '@synapse/shared-types';
 import { AuthService } from '../../application/services/auth.service';
 import { CurrentUser } from '../../infrastructure/auth/current-user.decorator';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
 import { LocalAuthGuard } from '../../infrastructure/auth/local-auth.guard';
+import { CreateUserDto, LoginDto } from '../dtos';
 
 @Controller('auth')
 export class AuthController {
