@@ -44,10 +44,53 @@ npm run db:studio   # Open Prisma Studio
 ### DTO Validation Pattern
 
 - **DTOs in `shared-types`**: Define as TypeScript **interfaces** (lightweight, no dependencies)
-- **DTOs in `api`**: Create **classes** in `packages/api/src/presentation/dtos/index.ts` that:
-  - Implement the corresponding interface from `@synapse/shared-types`
+- **DTOs in `api`**: Organized by domain with **classes** implementing shared-types interfaces
+  - Each domain has its own folder: `auth/`, `user/`, `product/`, `integration/`, etc.
+  - Each DTO is in a separate file: `create-user.dto.ts`, `update-user.dto.ts`
   - Add `class-validator` decorators for validation
-  - Are used in controllers for automatic validation
+  - Exported via barrel exports (`index.ts` in each folder)
+  - Main `dtos/index.ts` re-exports all DTOs organized by domain
+
+**File structure:**
+
+```
+packages/api/src/presentation/dtos/
+├── index.ts                    # Main barrel export
+├── auth/
+│   ├── index.ts
+│   └── login.dto.ts
+├── user/
+│   ├── index.ts
+│   ├── create-user.dto.ts
+│   └── update-user.dto.ts
+├── role/
+│   ├── index.ts
+│   ├── create-role.dto.ts
+│   └── update-role.dto.ts
+├── product/
+│   ├── index.ts
+│   ├── create-product.dto.ts
+│   └── update-product.dto.ts
+├── integration/
+│   ├── index.ts
+│   ├── create-integration.dto.ts
+│   └── update-integration.dto.ts
+├── ad-campaign/
+│   ├── index.ts
+│   ├── create-ad-campaign.dto.ts
+│   └── update-ad-campaign.dto.ts
+├── daily-ad-metric/
+│   ├── index.ts
+│   ├── create-daily-ad-metric.dto.ts
+│   └── update-daily-ad-metric.dto.ts
+├── sale/
+│   ├── index.ts
+│   ├── create-sale.dto.ts
+│   └── update-sale.dto.ts
+└── audit-log/
+    ├── index.ts
+    └── create-audit-log.dto.ts
+```
 
 **Example pattern:**
 
@@ -59,22 +102,32 @@ export interface CreateUserDto {
   password: string;
 }
 
-// In api/src/presentation/dtos/index.ts
-import { IsString, IsEmail, MinLength } from 'class-validator';
+// In api/src/presentation/dtos/user/create-user.dto.ts
+import { IsString, IsEmail, MinLength, MaxLength } from 'class-validator';
 import type { CreateUserDto as ICreateUserDto } from '@synapse/shared-types';
 
 export class CreateUserDto implements ICreateUserDto {
   @IsString()
-  @MinLength(2)
+  @MinLength(2, { message: 'Name must be at least 2 characters long' })
+  @MaxLength(255, { message: 'Name must not exceed 255 characters' })
   name: string;
 
-  @IsEmail()
+  @IsEmail({}, { message: 'Email must be valid' })
   email: string;
 
   @IsString()
-  @MinLength(8)
+  @MinLength(8, { message: 'Password must be at least 8 characters long' })
   password: string;
 }
+
+// In api/src/presentation/dtos/user/index.ts
+export * from './create-user.dto';
+export * from './update-user.dto';
+
+// In api/src/presentation/dtos/index.ts
+export * from './user';
+export * from './role';
+// ... other domains
 
 // In controllers
 import { CreateUserDto } from '../dtos'; // Use local validated class
@@ -91,6 +144,7 @@ import { CreateUserDto } from '../dtos'; // Use local validated class
 **Global ValidationPipe** in `main.ts`:
 
 - `whitelist: true` - removes non-decorated properties
+- `forbidNonWhitelisted: true` - throws error on extra properties
 - `transform: true` - transforms payloads to DTO instances
 - `enableImplicitConversion: true` - auto converts types
 
@@ -129,16 +183,22 @@ Key domain: Ad campaign management with user-product-integration-sales analytics
 ### When Adding New Features
 
 1. **Define types first** in `shared-types/src/index.ts` (entities, DTOs as interfaces, API endpoints)
-2. **Create validated DTO classes** in `api/src/presentation/dtos/index.ts` implementing shared-types interfaces
-3. **Add validation decorators** using class-validator
-4. **Update Prisma schema** if database changes needed
-5. **Run `npm run db:generate`** after Prisma changes
-6. Import types consistently: `import type { TypeName } from '@synapse/shared-types'` for types, `import { DtoName } from '../dtos'` for validated DTOs in controllers
+2. **Create validated DTO classes** in appropriate domain folder within `api/src/presentation/dtos/`
+   - Follow naming convention: `create-entity.dto.ts`, `update-entity.dto.ts`
+   - Implement corresponding interface from `@synapse/shared-types`
+   - Add `class-validator` decorators with descriptive error messages
+   - Export from domain's `index.ts`
+3. **Update Prisma schema** if database changes needed
+4. **Run `npm run db:generate`** after Prisma changes
+5. Import types consistently: `import type { TypeName } from '@synapse/shared-types'` for types, `import { DtoName } from '../dtos'` for validated DTOs in controllers
 
 ### Code Organization
 
 - Use TypeScript strict mode with decorators enabled
 - API follows NestJS patterns with dependency injection
+- **DTOs organized by domain** following DDD principles
+- One DTO per file with clear, descriptive names
+- Barrel exports for clean imports
 - Frontend uses React 19 with TypeScript
 - Shared ESLint configs per package, root config as fallback
 
@@ -151,7 +211,8 @@ Key domain: Ad campaign management with user-product-integration-sales analytics
 ## Critical Files
 
 - `packages/shared-types/src/index.ts` - Master type definitions (interfaces only)
-- `packages/api/src/presentation/dtos/index.ts` - Validated DTO classes with decorators
+- `packages/api/src/presentation/dtos/` - Validated DTO classes organized by domain
+- `packages/api/src/presentation/dtos/index.ts` - Main barrel export for all DTOs
 - `packages/api/prisma/schema.prisma` - Database schema
 - `packages/api/src/main.ts` - Global ValidationPipe configuration
 - `packages/web/vite.config.ts` - Frontend build & proxy config
