@@ -1,7 +1,4 @@
-// Domain entities mirroring the shared types
 export * from '@synapse/shared-types';
-
-// Additional domain-specific interfaces and types can be added here
 export interface DomainEntity {
   id: number;
   createdAt: Date;
@@ -11,8 +8,6 @@ export interface DomainEntity {
 export interface SoftDeletableEntity extends DomainEntity {
   deletedAt?: Date;
 }
-
-// Value Objects
 export class EmailValueObject {
   constructor(private readonly value: string) {
     if (!this.isValid(value)) {
