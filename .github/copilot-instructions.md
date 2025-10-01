@@ -41,6 +41,59 @@ npm run db:studio   # Open Prisma Studio
 - Prisma schema in `packages/api/prisma/schema.prisma` mirrors these types exactly
 - Both frontend and backend import from `@synapse/shared-types`
 
+### DTO Validation Pattern
+
+- **DTOs in `shared-types`**: Define as TypeScript **interfaces** (lightweight, no dependencies)
+- **DTOs in `api`**: Create **classes** in `packages/api/src/presentation/dtos/index.ts` that:
+  - Implement the corresponding interface from `@synapse/shared-types`
+  - Add `class-validator` decorators for validation
+  - Are used in controllers for automatic validation
+
+**Example pattern:**
+
+```typescript
+// In shared-types/src/index.ts
+export interface CreateUserDto {
+  name: string;
+  email: string;
+  password: string;
+}
+
+// In api/src/presentation/dtos/index.ts
+import { IsString, IsEmail, MinLength } from 'class-validator';
+import type { CreateUserDto as ICreateUserDto } from '@synapse/shared-types';
+
+export class CreateUserDto implements ICreateUserDto {
+  @IsString()
+  @MinLength(2)
+  name: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @MinLength(8)
+  password: string;
+}
+
+// In controllers
+import { CreateUserDto } from '../dtos'; // Use local validated class
+```
+
+**Common validation decorators:**
+
+- `@IsString()`, `@IsEmail()`, `@IsInt()`, `@IsNumber()`, `@IsEnum()`, `@IsDate()`
+- `@IsOptional()` - for optional fields (always first decorator)
+- `@MinLength()`, `@MaxLength()` - string length constraints
+- `@Min()`, `@Max()` - numeric constraints
+- Custom messages: `@IsEmail({}, { message: 'Email must be valid' })`
+
+**Global ValidationPipe** in `main.ts`:
+
+- `whitelist: true` - removes non-decorated properties
+- `transform: true` - transforms payloads to DTO instances
+- `enableImplicitConversion: true` - auto converts types
+
 ### Database Schema Patterns
 
 - Uses Prisma with PostgreSQL and custom output directory: `../generated/prisma`
@@ -75,10 +128,12 @@ Key domain: Ad campaign management with user-product-integration-sales analytics
 
 ### When Adding New Features
 
-1. **Define types first** in `shared-types/src/index.ts` (entities, DTOs, API endpoints)
-2. **Update Prisma schema** if database changes needed
-3. **Run `npm run db:generate`** after Prisma changes
-4. Import types consistently: `import { TypeName } from '@synapse/shared-types'`
+1. **Define types first** in `shared-types/src/index.ts` (entities, DTOs as interfaces, API endpoints)
+2. **Create validated DTO classes** in `api/src/presentation/dtos/index.ts` implementing shared-types interfaces
+3. **Add validation decorators** using class-validator
+4. **Update Prisma schema** if database changes needed
+5. **Run `npm run db:generate`** after Prisma changes
+6. Import types consistently: `import type { TypeName } from '@synapse/shared-types'` for types, `import { DtoName } from '../dtos'` for validated DTOs in controllers
 
 ### Code Organization
 
@@ -95,7 +150,9 @@ Key domain: Ad campaign management with user-product-integration-sales analytics
 
 ## Critical Files
 
-- `packages/shared-types/src/index.ts` - Master type definitions
+- `packages/shared-types/src/index.ts` - Master type definitions (interfaces only)
+- `packages/api/src/presentation/dtos/index.ts` - Validated DTO classes with decorators
 - `packages/api/prisma/schema.prisma` - Database schema
+- `packages/api/src/main.ts` - Global ValidationPipe configuration
 - `packages/web/vite.config.ts` - Frontend build & proxy config
 - Root `package.json` - Workspace orchestration scripts
