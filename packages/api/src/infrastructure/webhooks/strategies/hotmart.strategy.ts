@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import type { HotmartWebhookPayload } from '@synapse/shared-types';
 import {
   IntegrationPlatform,
   WebhookEventType,
-  type HotmartWebhookPayload,
-} from '@synapse/shared-types';
-import { PrismaService } from '../../../infrastructure/database/prisma.service';
+} from '../../../../generated/prisma';
+import {
+  IntegrationRepository,
+  ProductRepository,
+  SaleRepository,
+} from '../../repositories';
 import { HotmartValidator } from '../validators/hotmart.validator';
 import type {
   IWebhookStrategy,
@@ -14,7 +18,9 @@ import type {
 @Injectable()
 export class HotmartStrategy implements IWebhookStrategy {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly saleRepository: SaleRepository,
+    private readonly productRepository: ProductRepository,
+    private readonly integrationRepository: IntegrationRepository,
     private readonly validator: HotmartValidator,
   ) {}
 
@@ -81,8 +87,6 @@ export class HotmartStrategy implements IWebhookStrategy {
       PURCHASE_CHARGEBACK: WebhookEventType.HOTMART_PURCHASE_CHARGEBACK,
       SUBSCRIPTION_CANCELLATION:
         WebhookEventType.HOTMART_SUBSCRIPTION_CANCELLATION,
-      SUBSCRIPTION_REACTIVATION:
-        WebhookEventType.HOTMART_SUBSCRIPTION_REACTIVATION,
     };
 
     return eventMap[event] || WebhookEventType.HOTMART_PURCHASE_COMPLETE;
@@ -97,20 +101,18 @@ export class HotmartStrategy implements IWebhookStrategy {
       integrationId,
     );
 
-    const sale = await this.prisma.sale.create({
-      data: {
-        integrationId,
-        productId: product.id,
-        platformSaleId: payload.data.purchase.transaction,
-        status: 'CONFIRMED',
-        amount: payload.data.purchase.price.value,
-        currency: payload.data.purchase.price.currency_code,
-        customerName: payload.data.buyer.name,
-        customerEmail: payload.data.buyer.email,
-        saleDate: payload.data.purchase.approved_date
-          ? new Date(payload.data.purchase.approved_date * 1000)
-          : new Date(payload.data.purchase.order_date * 1000),
-      },
+    const sale = await this.saleRepository.create({
+      integrationId,
+      productId: product.id,
+      platformSaleId: payload.data.purchase.transaction,
+      status: 'CONFIRMED',
+      amount: payload.data.purchase.price.value,
+      currency: payload.data.purchase.price.currency_code,
+      customerName: payload.data.buyer.name,
+      customerEmail: payload.data.buyer.email,
+      saleDate: payload.data.purchase.approved_date
+        ? new Date(payload.data.purchase.approved_date * 1000)
+        : new Date(payload.data.purchase.order_date * 1000),
     });
 
     return {
@@ -125,18 +127,13 @@ export class HotmartStrategy implements IWebhookStrategy {
     payload: HotmartWebhookPayload,
     integrationId: number,
   ): Promise<WebhookProcessResult> {
-    const sale = await this.prisma.sale.findFirst({
-      where: {
-        platformSaleId: payload.data.purchase.transaction,
-        integrationId,
-      },
-    });
+    const sale = await this.saleRepository.findByPlatformSaleId(
+      payload.data.purchase.transaction,
+      integrationId,
+    );
 
     if (sale) {
-      await this.prisma.sale.update({
-        where: { id: sale.id },
-        data: { status: 'REFUNDED' },
-      });
+      await this.saleRepository.update(sale.id, { status: 'REFUNDED' });
     }
 
     return {
@@ -151,18 +148,13 @@ export class HotmartStrategy implements IWebhookStrategy {
     payload: HotmartWebhookPayload,
     integrationId: number,
   ): Promise<WebhookProcessResult> {
-    const sale = await this.prisma.sale.findFirst({
-      where: {
-        platformSaleId: payload.data.purchase.transaction,
-        integrationId,
-      },
-    });
+    const sale = await this.saleRepository.findByPlatformSaleId(
+      payload.data.purchase.transaction,
+      integrationId,
+    );
 
     if (sale) {
-      await this.prisma.sale.update({
-        where: { id: sale.id },
-        data: { status: 'CANCELLED' },
-      });
+      await this.saleRepository.update(sale.id, { status: 'CANCELLED' });
     }
 
     return {
@@ -177,23 +169,22 @@ export class HotmartStrategy implements IWebhookStrategy {
     productName: string,
     integrationId: number,
   ) {
-    const integration = await this.prisma.integration.findUnique({
-      where: { id: integrationId },
-    });
+    const integration =
+      await this.integrationRepository.findById(integrationId);
 
-    let product = await this.prisma.product.findFirst({
-      where: {
-        name: productName,
-        userId: integration?.userId,
-      },
-    });
+    if (!integration?.userId) {
+      throw new Error('Integration user not found');
+    }
+
+    let product = await this.productRepository.findByName(
+      productName,
+      integration.userId,
+    );
 
     if (!product) {
-      product = await this.prisma.product.create({
-        data: {
-          name: productName,
-          userId: integration?.userId,
-        },
+      product = await this.productRepository.create({
+        name: productName,
+        userId: integration.userId,
       });
     }
 

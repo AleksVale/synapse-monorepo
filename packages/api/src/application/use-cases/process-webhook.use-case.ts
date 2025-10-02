@@ -30,7 +30,6 @@ export class ProcessWebhookUseCase {
   }
 
   async execute(
-    platform: IntegrationPlatform,
     integrationId: number,
     payload: unknown,
     signature?: string,
@@ -44,11 +43,13 @@ export class ProcessWebhookUseCase {
       );
     }
 
-    const strategy = this.strategies.get(platform);
+    const strategy = this.strategies.get(
+      integration.platformName as IntegrationPlatform,
+    );
 
     if (!strategy) {
       throw new NotFoundException(
-        `Strategy for platform ${platform} not found`,
+        `Strategy for platform ${integration.platformName} not found`,
       );
     }
 

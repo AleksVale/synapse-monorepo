@@ -46,13 +46,13 @@ export class EduzzStrategy implements IWebhookStrategy {
 
     try {
       switch (eventType) {
-        case WebhookEventType.EDUZZ_SALE:
+        case WebhookEventType.EDUZZ_VENDA:
           return await this.handleSale(eduzzPayload, integrationId);
 
-        case WebhookEventType.EDUZZ_REFUND:
+        case WebhookEventType.EDUZZ_REEMBOLSO:
           return await this.handleRefund(eduzzPayload, integrationId);
 
-        case WebhookEventType.EDUZZ_CANCELLATION:
+        case WebhookEventType.EDUZZ_CANCELAMENTO:
           return await this.handleCancellation(eduzzPayload, integrationId);
 
         default:
@@ -74,14 +74,12 @@ export class EduzzStrategy implements IWebhookStrategy {
 
   private mapEventType(evento: string): WebhookEventType {
     const eventMap: Record<string, WebhookEventType> = {
-      venda: WebhookEventType.EDUZZ_SALE,
-      cancelamento: WebhookEventType.EDUZZ_CANCELLATION,
-      reembolso: WebhookEventType.EDUZZ_REFUND,
-      assinatura_criada: WebhookEventType.EDUZZ_SUBSCRIPTION_CREATED,
-      assinatura_cancelada: WebhookEventType.EDUZZ_SUBSCRIPTION_CANCELLED,
+      venda: WebhookEventType.EDUZZ_VENDA,
+      cancelamento: WebhookEventType.EDUZZ_CANCELAMENTO,
+      reembolso: WebhookEventType.EDUZZ_REEMBOLSO,
     };
 
-    return eventMap[evento] || WebhookEventType.EDUZZ_SALE;
+    return eventMap[evento] || WebhookEventType.EDUZZ_VENDA;
   }
 
   private async handleSale(
@@ -93,26 +91,24 @@ export class EduzzStrategy implements IWebhookStrategy {
       integrationId,
     );
 
-    const sale = await this.prisma.sale.create({
-      data: {
-        integrationId,
-        productId: product.id,
-        platformSaleId: payload.trans_cod.toString(),
-        status: this.mapSaleStatus(payload.trans_status),
-        amount: payload.valor,
-        currency: payload.moeda,
-        customerName: payload.cliente.nome,
-        customerEmail: payload.cliente.email,
-        saleDate: payload.data_aprovacao
-          ? new Date(payload.data_aprovacao)
-          : new Date(),
-      },
+    const sale = await this.saleRepository.create({
+      integrationId,
+      productId: product.id,
+      platformSaleId: payload.trans_cod.toString(),
+      status: this.mapSaleStatus(payload.trans_status),
+      amount: payload.valor,
+      currency: payload.moeda,
+      customerName: payload.cliente.nome,
+      customerEmail: payload.cliente.email,
+      saleDate: payload.data_aprovacao
+        ? new Date(payload.data_aprovacao)
+        : new Date(),
     });
 
     return {
       success: true,
       saleId: sale.id,
-      eventType: WebhookEventType.EDUZZ_SALE,
+      eventType: WebhookEventType.EDUZZ_VENDA,
       message: 'Sale processed successfully',
     };
   }
@@ -121,24 +117,19 @@ export class EduzzStrategy implements IWebhookStrategy {
     payload: EduzzWebhookPayload,
     integrationId: number,
   ): Promise<WebhookProcessResult> {
-    const sale = await this.prisma.sale.findFirst({
-      where: {
-        platformSaleId: payload.trans_cod.toString(),
-        integrationId,
-      },
-    });
+    const sale = await this.saleRepository.findByPlatformSaleId(
+      payload.trans_cod.toString(),
+      integrationId,
+    );
 
     if (sale) {
-      await this.prisma.sale.update({
-        where: { id: sale.id },
-        data: { status: 'REFUNDED' },
-      });
+      await this.saleRepository.update(sale.id, { status: 'REFUNDED' });
     }
 
     return {
       success: true,
       saleId: sale?.id,
-      eventType: WebhookEventType.EDUZZ_REFUND,
+      eventType: WebhookEventType.EDUZZ_REEMBOLSO,
       message: 'Refund processed successfully',
     };
   }
@@ -147,24 +138,19 @@ export class EduzzStrategy implements IWebhookStrategy {
     payload: EduzzWebhookPayload,
     integrationId: number,
   ): Promise<WebhookProcessResult> {
-    const sale = await this.prisma.sale.findFirst({
-      where: {
-        platformSaleId: payload.trans_cod.toString(),
-        integrationId,
-      },
-    });
+    const sale = await this.saleRepository.findByPlatformSaleId(
+      payload.trans_cod.toString(),
+      integrationId,
+    );
 
     if (sale) {
-      await this.prisma.sale.update({
-        where: { id: sale.id },
-        data: { status: 'CANCELLED' },
-      });
+      await this.saleRepository.update(sale.id, { status: 'CANCELLED' });
     }
 
     return {
       success: true,
       saleId: sale?.id,
-      eventType: WebhookEventType.EDUZZ_CANCELLATION,
+      eventType: WebhookEventType.EDUZZ_CANCELAMENTO,
       message: 'Cancellation processed successfully',
     };
   }
@@ -189,23 +175,22 @@ export class EduzzStrategy implements IWebhookStrategy {
     productName: string,
     integrationId: number,
   ) {
-    const integration = await this.prisma.integration.findUnique({
-      where: { id: integrationId },
-    });
+    const integration =
+      await this.integrationRepository.findById(integrationId);
 
-    let product = await this.prisma.product.findFirst({
-      where: {
-        name: productName,
-        userId: integration?.userId,
-      },
-    });
+    if (!integration?.userId) {
+      throw new Error('Integration user not found');
+    }
+
+    let product = await this.productRepository.findByName(
+      productName,
+      integration.userId,
+    );
 
     if (!product) {
-      product = await this.prisma.product.create({
-        data: {
-          name: productName,
-          userId: integration?.userId,
-        },
+      product = await this.productRepository.create({
+        name: productName,
+        userId: integration.userId,
       });
     }
 
