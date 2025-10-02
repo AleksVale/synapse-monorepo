@@ -6,7 +6,7 @@ import {
   ParseIntPipe,
   Post,
 } from '@nestjs/common';
-import { WebhookStatus } from '../../../generated/prisma';
+import { WebhookEventType, WebhookStatus } from '../../../generated/prisma';
 import {
   CreateWebhookLogUseCase,
   ProcessWebhookUseCase,
@@ -28,11 +28,7 @@ export class WebhookController {
     @Headers('x-signature') eduzzSignature?: string,
   ) {
     try {
-      const signature =
-        kiwifySignature ||
-        hotmartHottok ||
-        eduzzSignature ||
-        (payload?.token as string);
+      const signature = kiwifySignature || hotmartHottok || eduzzSignature;
 
       const result = await this.processWebhookUseCase.execute(
         integrationId,
@@ -60,10 +56,27 @@ export class WebhookController {
         message: result.message,
       };
     } catch (error) {
+      const payloadData = payload as Record<string, unknown>;
+      const rawEventType =
+        payloadData?.event ||
+        payloadData?.webhook_event_type ||
+        payloadData?.Event ||
+        'UNKNOWN_EVENT';
+      const eventType =
+        typeof rawEventType === 'string' ? rawEventType : 'UNKNOWN_EVENT';
+
+      const platform = kiwifySignature
+        ? 'KIWIFY'
+        : hotmartHottok
+          ? 'HOTMART'
+          : eduzzSignature
+            ? 'EDUZZ'
+            : 'UNKNOWN';
+
       await this.createWebhookLogUseCase.execute({
         integrationId,
-        platform: 'KIWIFY',
-        eventType: 'KIWIFY_ORDER_PAID',
+        platform: platform as 'KIWIFY' | 'EDUZZ' | 'HOTMART',
+        eventType: eventType as WebhookEventType,
         payload: payload as Record<string, any>,
         status: WebhookStatus.FAILED,
         errorMessage: error instanceof Error ? error.message : 'Unknown error',
