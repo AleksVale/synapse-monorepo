@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import type { EduzzWebhookPayload } from '@synapse/shared-types';
 import {
   IntegrationPlatform,
   WebhookEventType,
-  type EduzzWebhookPayload,
-} from '@synapse/shared-types';
-import { PrismaService } from '../../../infrastructure/database/prisma.service';
+} from '../../../../generated/prisma';
+import {
+  IntegrationRepository,
+  ProductRepository,
+  SaleRepository,
+} from '../../repositories';
 import { EduzzValidator } from '../validators/eduzz.validator';
 import type {
   IWebhookStrategy,
@@ -14,7 +18,9 @@ import type {
 @Injectable()
 export class EduzzStrategy implements IWebhookStrategy {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly saleRepository: SaleRepository,
+    private readonly productRepository: ProductRepository,
+    private readonly integrationRepository: IntegrationRepository,
     private readonly validator: EduzzValidator,
   ) {}
 

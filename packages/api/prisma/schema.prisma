@@ -18,6 +18,33 @@ enum SaleStatus {
   REFUNDED
 }
 
+enum IntegrationPlatform {
+  KIWIFY
+  EDUZZ
+  HOTMART
+}
+
+enum WebhookEventType {
+  KIWIFY_ORDER_PAID
+  KIWIFY_ORDER_REFUNDED
+  KIWIFY_ORDER_CHARGEBACK
+  EDUZZ_VENDA
+  EDUZZ_CANCELAMENTO
+  EDUZZ_REEMBOLSO
+  HOTMART_PURCHASE_COMPLETE
+  HOTMART_PURCHASE_REFUNDED
+  HOTMART_PURCHASE_CHARGEBACK
+  HOTMART_SUBSCRIPTION_CANCELLATION
+}
+
+enum WebhookStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+  IGNORED
+}
+
 model Role {
   id        Int      @id @default(autoincrement())
   name      String   @db.VarChar(50)
@@ -156,4 +183,19 @@ model AuditLog {
   user User? @relation(fields: [userId], references: [id])
 
   @@map("audit_logs")
+}
+
+model WebhookLog {
+  id            Int                 @id @default(autoincrement())
+  integrationId Int?                @map("integration_id")
+  platform      IntegrationPlatform
+  eventType     WebhookEventType    @map("event_type")
+  payload       Json
+  status        WebhookStatus
+  errorMessage  String?             @map("error_message") @db.Text
+  processedAt   DateTime?           @map("processed_at")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+
+  @@map("webhook_logs")
 }

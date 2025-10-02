@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import type { KiwifyWebhookPayload } from '@synapse/shared-types';
 import {
   IntegrationPlatform,
   WebhookEventType,
-  type KiwifyWebhookPayload,
-} from '@synapse/shared-types';
-import { PrismaService } from '../../../infrastructure/database/prisma.service';
+} from '../../../../generated/prisma';
+import {
+  IntegrationRepository,
+  ProductRepository,
+  SaleRepository,
+} from '../../repositories';
 import { KiwifyValidator } from '../validators/kiwify.validator';
 import type {
   IWebhookStrategy,
@@ -14,7 +18,9 @@ import type {
 @Injectable()
 export class KiwifyStrategy implements IWebhookStrategy {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly saleRepository: SaleRepository,
+    private readonly productRepository: ProductRepository,
+    private readonly integrationRepository: IntegrationRepository,
     private readonly validator: KiwifyValidator,
   ) {}
 
@@ -71,8 +77,6 @@ export class KiwifyStrategy implements IWebhookStrategy {
       'order.paid': WebhookEventType.KIWIFY_ORDER_PAID,
       'order.refunded': WebhookEventType.KIWIFY_ORDER_REFUNDED,
       'order.chargeback': WebhookEventType.KIWIFY_ORDER_CHARGEBACK,
-      'subscription.created': WebhookEventType.KIWIFY_SUBSCRIPTION_CREATED,
-      'subscription.cancelled': WebhookEventType.KIWIFY_SUBSCRIPTION_CANCELLED,
     };
 
     return eventMap[event] || WebhookEventType.KIWIFY_ORDER_PAID;
@@ -87,20 +91,18 @@ export class KiwifyStrategy implements IWebhookStrategy {
       integrationId,
     );
 
-    const sale = await this.prisma.sale.create({
-      data: {
-        integrationId,
-        productId: product.id,
-        platformSaleId: payload.order_id,
-        status: 'CONFIRMED',
-        amount: payload.amount,
-        currency: payload.currency,
-        customerName: payload.customer.name,
-        customerEmail: payload.customer.email,
-        saleDate: payload.approved_date
-          ? new Date(payload.approved_date)
-          : new Date(),
-      },
+    const sale = await this.saleRepository.create({
+      integrationId,
+      productId: product.id,
+      platformSaleId: payload.order_id,
+      status: 'CONFIRMED',
+      amount: payload.amount,
+      currency: payload.currency,
+      customerName: payload.customer.name,
+      customerEmail: payload.customer.email,
+      saleDate: payload.approved_date
+        ? new Date(payload.approved_date)
+        : new Date(),
     });
 
     return {
@@ -115,18 +117,13 @@ export class KiwifyStrategy implements IWebhookStrategy {
     payload: KiwifyWebhookPayload,
     integrationId: number,
   ): Promise<WebhookProcessResult> {
-    const sale = await this.prisma.sale.findFirst({
-      where: {
-        platformSaleId: payload.order_id,
-        integrationId,
-      },
-    });
+    const sale = await this.saleRepository.findByPlatformSaleId(
+      payload.order_id,
+      integrationId,
+    );
 
     if (sale) {
-      await this.prisma.sale.update({
-        where: { id: sale.id },
-        data: { status: 'REFUNDED' },
-      });
+      await this.saleRepository.update(sale.id, { status: 'REFUNDED' });
     }
 
     return {
@@ -141,18 +138,13 @@ export class KiwifyStrategy implements IWebhookStrategy {
     payload: KiwifyWebhookPayload,
     integrationId: number,
   ): Promise<WebhookProcessResult> {
-    const sale = await this.prisma.sale.findFirst({
-      where: {
-        platformSaleId: payload.order_id,
-        integrationId,
-      },
-    });
+    const sale = await this.saleRepository.findByPlatformSaleId(
+      payload.order_id,
+      integrationId,
+    );
 
     if (sale) {
-      await this.prisma.sale.update({
-        where: { id: sale.id },
-        data: { status: 'CANCELLED' },
-      });
+      await this.saleRepository.update(sale.id, { status: 'CANCELLED' });
     }
 
     return {
@@ -167,23 +159,22 @@ export class KiwifyStrategy implements IWebhookStrategy {
     productName: string,
     integrationId: number,
   ) {
-    const integration = await this.prisma.integration.findUnique({
-      where: { id: integrationId },
-    });
+    const integration =
+      await this.integrationRepository.findById(integrationId);
 
-    let product = await this.prisma.product.findFirst({
-      where: {
-        name: productName,
-        userId: integration?.userId,
-      },
-    });
+    if (!integration?.userId) {
+      throw new Error('Integration user not found');
+    }
+
+    let product = await this.productRepository.findByName(
+      productName,
+      integration.userId,
+    );
 
     if (!product) {
-      product = await this.prisma.product.create({
-        data: {
-          name: productName,
-          userId: integration?.userId,
-        },
+      product = await this.productRepository.create({
+        name: productName,
+        userId: integration.userId,
       });
     }
 

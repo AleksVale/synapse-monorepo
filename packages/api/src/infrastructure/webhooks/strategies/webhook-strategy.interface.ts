@@ -1,7 +1,7 @@
 import type {
   IntegrationPlatform,
   WebhookEventType,
-} from '@synapse/shared-types';
+} from '../../../../generated/prisma';
 
 export interface WebhookProcessResult {
   success: boolean;
