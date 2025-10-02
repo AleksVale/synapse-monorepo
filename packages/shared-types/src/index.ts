@@ -1,6 +1,3 @@
-// Common types and interfaces shared across the monorepo
-
-// ============= ENUMS =============
 export enum SaleStatus {
   PENDING = 'PENDING',
   CONFIRMED = 'CONFIRMED',
@@ -8,7 +5,40 @@ export enum SaleStatus {
   REFUNDED = 'REFUNDED',
 }
 
-// ============= BASE ENTITIES =============
+export enum IntegrationPlatform {
+  KIWIFY = 'KIWIFY',
+  EDUZZ = 'EDUZZ',
+  HOTMART = 'HOTMART',
+}
+
+export enum WebhookEventType {
+  KIWIFY_ORDER_PAID = 'order.paid',
+  KIWIFY_ORDER_REFUNDED = 'order.refunded',
+  KIWIFY_ORDER_CHARGEBACK = 'order.chargeback',
+  KIWIFY_SUBSCRIPTION_CREATED = 'subscription.created',
+  KIWIFY_SUBSCRIPTION_CANCELLED = 'subscription.cancelled',
+
+  EDUZZ_SALE = 'venda',
+  EDUZZ_CANCELLATION = 'cancelamento',
+  EDUZZ_REFUND = 'reembolso',
+  EDUZZ_SUBSCRIPTION_CREATED = 'assinatura_criada',
+  EDUZZ_SUBSCRIPTION_CANCELLED = 'assinatura_cancelada',
+
+  HOTMART_PURCHASE_COMPLETE = 'PURCHASE_COMPLETE',
+  HOTMART_PURCHASE_REFUNDED = 'PURCHASE_REFUNDED',
+  HOTMART_PURCHASE_CHARGEBACK = 'PURCHASE_CHARGEBACK',
+  HOTMART_SUBSCRIPTION_CANCELLATION = 'SUBSCRIPTION_CANCELLATION',
+  HOTMART_SUBSCRIPTION_REACTIVATION = 'SUBSCRIPTION_REACTIVATION',
+}
+
+export enum WebhookStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  SUCCESS = 'SUCCESS',
+  FAILED = 'FAILED',
+  IGNORED = 'IGNORED',
+}
+
 export interface Role {
   id: number;
   name: string;
@@ -106,7 +136,20 @@ export interface AuditLog {
   user?: User;
 }
 
-// ============= DTOs =============
+export interface WebhookLog {
+  id: number;
+  integrationId?: number;
+  platform: IntegrationPlatform;
+  eventType: WebhookEventType;
+  payload: Record<string, unknown>;
+  status: WebhookStatus;
+  errorMessage?: string;
+  processedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  integration?: Integration;
+}
+
 export interface CreateRoleDto {
   name: string;
 }
@@ -213,7 +256,6 @@ export interface CreateAuditLogDto {
   details?: string;
 }
 
-// ============= AUTH DTOs =============
 export interface LoginDto {
   email: string;
   password: string;
@@ -226,7 +268,6 @@ export interface AuthResponse extends ApiResponse {
   };
 }
 
-// ============= COMMON RESPONSE TYPES =============
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
@@ -243,16 +284,15 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
   };
 }
 
-// ============= ANALYTICS TYPES =============
 export interface CampaignAnalytics {
   campaign: AdCampaign;
   totalSpend: number;
   totalClicks: number;
   totalImpressions: number;
   totalConversions: number;
-  ctr: number; // Click Through Rate
-  cpc: number; // Cost Per Click
-  cpm: number; // Cost Per Mille
+  ctr: number;
+  cpc: number;
+  cpm: number;
   conversionRate: number;
   costPerConversion: number;
   dateRange: {
@@ -274,7 +314,6 @@ export interface SalesAnalytics {
   };
 }
 
-// ============= HTTP STATUS CODES =============
 export enum HttpStatusCode {
   OK = 200,
   CREATED = 201,
@@ -285,7 +324,6 @@ export enum HttpStatusCode {
   INTERNAL_SERVER_ERROR = 500,
 }
 
-// ============= API ENDPOINTS =============
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/auth/login',
@@ -334,4 +372,107 @@ export const API_ENDPOINTS = {
     BASE: '/audit-logs',
     BY_USER: (userId: number) => `/audit-logs/user/${userId}`,
   },
+  WEBHOOKS: {
+    KIWIFY: '/webhooks/kiwify',
+    EDUZZ: '/webhooks/eduzz',
+    HOTMART: '/webhooks/hotmart',
+  },
 } as const;
+
+export interface KiwifyCustomer {
+  name: string;
+  email: string;
+  cpf?: string;
+  phone?: string;
+}
+
+export interface KiwifyProduct {
+  id: string;
+  name: string;
+}
+
+export interface KiwifyWebhookPayload {
+  event: string;
+  order_id: string;
+  order_ref: string;
+  product: KiwifyProduct;
+  customer: KiwifyCustomer;
+  payment_method: string;
+  approved_date?: string;
+  amount: number;
+  currency: string;
+  status: string;
+}
+
+export interface EduzzCustomer {
+  nome: string;
+  email: string;
+  cpf?: string;
+  telefone?: string;
+}
+
+export interface EduzzProduct {
+  cod_produto: number;
+  nome_produto: string;
+}
+
+export interface EduzzWebhookPayload {
+  evento: string;
+  trans_cod: number;
+  trans_status: string;
+  produto: EduzzProduct;
+  cliente: EduzzCustomer;
+  forma_pagamento: string;
+  data_aprovacao?: string;
+  valor: number;
+  moeda: string;
+  token: string;
+}
+
+export interface HotmartBuyer {
+  name: string;
+  email: string;
+  checkout_phone?: string;
+}
+
+export interface HotmartProduct {
+  id: number;
+  name: string;
+}
+
+export interface HotmartPurchase {
+  order_date: number;
+  approved_date?: number;
+  status: string;
+  transaction: string;
+  payment: {
+    type: string;
+  };
+  price: {
+    value: number;
+    currency_code: string;
+  };
+}
+
+export interface HotmartWebhookPayload {
+  event: string;
+  version: string;
+  data: {
+    product: HotmartProduct;
+    buyer: HotmartBuyer;
+    purchase: HotmartPurchase;
+  };
+}
+
+export interface ProcessWebhookDto {
+  platform: IntegrationPlatform;
+  payload: KiwifyWebhookPayload | EduzzWebhookPayload | HotmartWebhookPayload;
+  signature?: string;
+  headers?: Record<string, string>;
+}
+
+export interface WebhookResponseDto {
+  success: boolean;
+  message: string;
+  webhookLogId?: number;
+}

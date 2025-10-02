@@ -201,6 +201,10 @@ Key domain: Ad campaign management with user-product-integration-sales analytics
 - Barrel exports for clean imports
 - Frontend uses React 19 with TypeScript
 - Shared ESLint configs per package, root config as fallback
+- **NO COMMENTS IN CODE**: Functions, methods, constants, and variables must be self-descriptive
+  - Use clear, descriptive names that explain intent
+  - If you need to explain what code does, refactor it to be clearer
+  - Only exception: Complex algorithms requiring mathematical/business context
 
 ### Testing & Building
 
