@@ -25,10 +25,14 @@ export class WebhookController {
     @Body() payload: any,
     @Headers('x-kiwify-signature') kiwifySignature?: string,
     @Headers('x-hotmart-hottok') hotmartHottok?: string,
+    @Headers('x-signature') eduzzSignature?: string,
   ) {
     try {
       const signature =
-        kiwifySignature || hotmartHottok || (payload?.token as string);
+        kiwifySignature ||
+        hotmartHottok ||
+        eduzzSignature ||
+        (payload?.token as string);
 
       const result = await this.processWebhookUseCase.execute(
         integrationId,

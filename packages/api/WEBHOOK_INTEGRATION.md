@@ -69,12 +69,15 @@ Cada plataforma usa um método diferente de validação:
 ### Kiwify
 - **Método**: HMAC SHA256
 - **Header**: `X-Kiwify-Signature`
+- **Cálculo**: `hmac('sha256', apiKey, JSON.stringify(payload))`
 - **Secret**: `apiKey` da integração
 
 ### Eduzz
-- **Método**: Token Comparison
-- **Localização**: `payload.token`
-- **Secret**: `apiKey` da integração
+- **Método**: HMAC SHA256
+- **Header**: `X-Signature`
+- **Cálculo**: `hmac('sha256', apiKey, JSON.stringify(payload))`
+- **Secret**: `apiKey` da integração (chave secreta do webhook)
+- **Documentação**: [Eduzz Webhook Security](https://developers.eduzz.com/docs/webhook/security)
 
 ### Hotmart
 - **Método**: Hottok Validation
@@ -164,17 +167,32 @@ POST /integrations
 # Kiwify
 curl -X POST http://localhost:3001/webhooks/123 \
   -H "Content-Type: application/json" \
-  -H "X-Kiwify-Signature: xxx" \
-  -d '{"event":"order.paid","order_id":"123",...}'
+  -H "X-Kiwify-Signature: <hmac_sha256_signature>" \
+  -d '{"order_id":"da292c35-c6fc-44e7-ad19-ff7865bc2d89",...}'
 
 # Eduzz  
 curl -X POST http://localhost:3001/webhooks/456 \
   -H "Content-Type: application/json" \
-  -d '{"evento":"venda","token":"xxx",...}'
+  -H "X-Signature: <hmac_sha256_signature>" \
+  -d '{"id":"zszf0uk65g701io8dbsckfeld","event":"myeduzz.invoice_paid",...}'
 
 # Hotmart
 curl -X POST http://localhost:3001/webhooks/789 \
   -H "Content-Type: application/json" \
+  -H "X-Hotmart-Hottok: <hottok_signature>" \
+  -d '{"id":"1234567890123456789","event":"PURCHASE_APPROVED",...}'
+```
+
+**Gerando assinaturas para teste:**
+
+```typescript
+// Kiwify e Eduzz (HMAC SHA256)
+const crypto = require('crypto');
+const payload = JSON.stringify({ /* seu payload */ });
+const secret = 'sua-api-key';
+const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+console.log('Signature:', signature);
+``` \
   -H "X-Hotmart-Hottok: xxx" \
   -d '{"event":"PURCHASE_COMPLETE",...}'
 ```

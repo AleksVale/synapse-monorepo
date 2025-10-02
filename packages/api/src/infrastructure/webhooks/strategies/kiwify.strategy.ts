@@ -42,7 +42,7 @@ export class KiwifyStrategy implements IWebhookStrategy {
     integrationId: number,
   ): Promise<WebhookProcessResult> {
     const kiwifyPayload = payload as KiwifyWebhookPayload;
-    const eventType = this.mapEventType(kiwifyPayload.event);
+    const eventType = this.mapEventType(kiwifyPayload.webhook_event_type);
 
     try {
       switch (eventType) {
@@ -59,7 +59,7 @@ export class KiwifyStrategy implements IWebhookStrategy {
           return {
             success: false,
             eventType,
-            message: `Event type ${kiwifyPayload.event} not handled`,
+            message: `Event type ${kiwifyPayload.webhook_event_type} not handled`,
           };
       }
     } catch (error) {
@@ -74,9 +74,9 @@ export class KiwifyStrategy implements IWebhookStrategy {
 
   private mapEventType(event: string): WebhookEventType {
     const eventMap: Record<string, WebhookEventType> = {
-      'order.paid': WebhookEventType.KIWIFY_ORDER_PAID,
-      'order.refunded': WebhookEventType.KIWIFY_ORDER_REFUNDED,
-      'order.chargeback': WebhookEventType.KIWIFY_ORDER_CHARGEBACK,
+      order_approved: WebhookEventType.KIWIFY_ORDER_PAID,
+      order_refunded: WebhookEventType.KIWIFY_ORDER_REFUNDED,
+      chargeback: WebhookEventType.KIWIFY_ORDER_CHARGEBACK,
     };
 
     return eventMap[event] || WebhookEventType.KIWIFY_ORDER_PAID;
@@ -87,22 +87,25 @@ export class KiwifyStrategy implements IWebhookStrategy {
     integrationId: number,
   ): Promise<WebhookProcessResult> {
     const product = await this.findOrCreateProduct(
-      payload.product.name,
+      payload.Product.product_name,
       integrationId,
     );
+
+    const amountInCents = parseInt(payload.Commissions.charge_amount, 10);
+    const amountInUnits = amountInCents / 100;
 
     const sale = await this.saleRepository.create({
       integrationId,
       productId: product.id,
       platformSaleId: payload.order_id,
       status: 'CONFIRMED',
-      amount: payload.amount,
-      currency: payload.currency,
-      customerName: payload.customer.name,
-      customerEmail: payload.customer.email,
+      amount: amountInUnits,
+      currency: payload.Commissions.currency,
+      customerName: payload.Customer.full_name,
+      customerEmail: payload.Customer.email,
       saleDate: payload.approved_date
         ? new Date(payload.approved_date)
-        : new Date(),
+        : new Date(payload.created_at),
     });
 
     return {

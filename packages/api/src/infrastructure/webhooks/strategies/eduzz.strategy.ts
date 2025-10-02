@@ -33,8 +33,8 @@ export class EduzzStrategy implements IWebhookStrategy {
     signature: string,
     secret: string,
   ): boolean {
-    const eduzzPayload = payload as EduzzWebhookPayload;
-    return this.validator.validateToken(eduzzPayload.token, secret);
+    const payloadString = JSON.stringify(payload);
+    return this.validator.validateSignature(payloadString, signature, secret);
   }
 
   async process(
@@ -42,7 +42,7 @@ export class EduzzStrategy implements IWebhookStrategy {
     integrationId: number,
   ): Promise<WebhookProcessResult> {
     const eduzzPayload = payload as EduzzWebhookPayload;
-    const eventType = this.mapEventType(eduzzPayload.evento);
+    const eventType = this.mapEventType(eduzzPayload.event);
 
     try {
       switch (eventType) {
@@ -59,7 +59,7 @@ export class EduzzStrategy implements IWebhookStrategy {
           return {
             success: false,
             eventType,
-            message: `Event type ${eduzzPayload.evento} not handled`,
+            message: `Event type ${eduzzPayload.event} not handled`,
           };
       }
     } catch (error) {
@@ -72,37 +72,35 @@ export class EduzzStrategy implements IWebhookStrategy {
     }
   }
 
-  private mapEventType(evento: string): WebhookEventType {
+  private mapEventType(event: string): WebhookEventType {
     const eventMap: Record<string, WebhookEventType> = {
-      venda: WebhookEventType.EDUZZ_VENDA,
-      cancelamento: WebhookEventType.EDUZZ_CANCELAMENTO,
-      reembolso: WebhookEventType.EDUZZ_REEMBOLSO,
+      'myeduzz.invoice_paid': WebhookEventType.EDUZZ_VENDA,
+      'myeduzz.invoice_refunded': WebhookEventType.EDUZZ_REEMBOLSO,
+      'myeduzz.invoice_chargeback': WebhookEventType.EDUZZ_CANCELAMENTO,
     };
 
-    return eventMap[evento] || WebhookEventType.EDUZZ_VENDA;
+    return eventMap[event] || WebhookEventType.EDUZZ_VENDA;
   }
 
   private async handleSale(
     payload: EduzzWebhookPayload,
     integrationId: number,
   ): Promise<WebhookProcessResult> {
-    const product = await this.findOrCreateProduct(
-      payload.produto.nome_produto,
-      integrationId,
-    );
+    const productName = payload.data.items[0]?.name || 'Produto Eduzz';
+    const product = await this.findOrCreateProduct(productName, integrationId);
 
     const sale = await this.saleRepository.create({
       integrationId,
       productId: product.id,
-      platformSaleId: payload.trans_cod.toString(),
-      status: this.mapSaleStatus(payload.trans_status),
-      amount: payload.valor,
-      currency: payload.moeda,
-      customerName: payload.cliente.nome,
-      customerEmail: payload.cliente.email,
-      saleDate: payload.data_aprovacao
-        ? new Date(payload.data_aprovacao)
-        : new Date(),
+      platformSaleId: payload.data.id,
+      status: this.mapSaleStatus(payload.data.status),
+      amount: payload.data.price.value,
+      currency: payload.data.price.currency,
+      customerName: payload.data.buyer.name,
+      customerEmail: payload.data.buyer.email,
+      saleDate: payload.data.paidAt
+        ? new Date(payload.data.paidAt)
+        : new Date(payload.data.createdAt),
     });
 
     return {
@@ -118,7 +116,7 @@ export class EduzzStrategy implements IWebhookStrategy {
     integrationId: number,
   ): Promise<WebhookProcessResult> {
     const sale = await this.saleRepository.findByPlatformSaleId(
-      payload.trans_cod.toString(),
+      payload.data.id,
       integrationId,
     );
 
@@ -139,7 +137,7 @@ export class EduzzStrategy implements IWebhookStrategy {
     integrationId: number,
   ): Promise<WebhookProcessResult> {
     const sale = await this.saleRepository.findByPlatformSaleId(
-      payload.trans_cod.toString(),
+      payload.data.id,
       integrationId,
     );
 

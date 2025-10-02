@@ -380,53 +380,289 @@ export const API_ENDPOINTS = {
 } as const;
 
 export interface KiwifyCustomer {
-  name: string;
+  full_name: string;
+  first_name: string;
   email: string;
-  cpf?: string;
-  phone?: string;
+  mobile?: string;
+  CPF?: string;
+  ip?: string;
+  country?: string;
 }
 
 export interface KiwifyProduct {
+  product_id: string;
+  product_name: string;
+}
+
+export interface KiwifyCommissionedStore {
+  id: string;
+  type: string;
+  custom_name: string;
+  affiliate_id: string;
+  email: string;
+  value: string;
+}
+
+export interface KiwifyCommissions {
+  charge_amount: string;
+  currency: string;
+  product_base_price: string;
+  product_base_price_currency: string;
+  kiwify_fee: string;
+  kiwify_fee_currency: string;
+  commissioned_stores: KiwifyCommissionedStore[];
+  my_commission: string;
+  funds_status?: string;
+  estimated_deposit_date?: string;
+  deposit_date?: string;
+}
+
+export interface KiwifyTrackingParameters {
+  src?: string;
+  sck?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
+}
+
+export interface KiwifyCustomerAccess {
+  has_access: boolean;
+  active_period: boolean;
+  access_until: string;
+}
+
+export interface KiwifySubscriptionPlan {
   id: string;
   name: string;
+  frequency: string;
+  qty_charges: number;
+}
+
+export interface KiwifyCompletedCharge {
+  order_id: string;
+  amount: number;
+  status: string;
+  installments: number;
+  card_type?: string;
+  card_last_digits?: string;
+  card_first_digits?: string;
+  created_at: string;
+}
+
+export interface KiwifyFutureCharge {
+  charge_date: string;
+}
+
+export interface KiwifyCharges {
+  completed: KiwifyCompletedCharge[];
+  future: KiwifyFutureCharge[];
+}
+
+export interface KiwifySubscription {
+  start_date: string;
+  next_payment: string;
+  status: string;
+  customer_access: KiwifyCustomerAccess;
+  plan: KiwifySubscriptionPlan;
+  charges: KiwifyCharges;
 }
 
 export interface KiwifyWebhookPayload {
-  event: string;
   order_id: string;
   order_ref: string;
-  product: KiwifyProduct;
-  customer: KiwifyCustomer;
+  order_status: string;
   payment_method: string;
+  store_id: string;
+  payment_merchant_id: string;
+  installments: number;
+  card_type?: string;
+  card_last4digits?: string;
+  card_rejection_reason?: string;
+  pix_code?: string;
+  pix_expiration?: string;
+  boleto_URL?: string;
+  boleto_barcode?: string;
+  boleto_expiry_date?: string;
+  sale_type: string;
   approved_date?: string;
-  amount: number;
-  currency: string;
-  status: string;
+  created_at: string;
+  updated_at: string;
+  webhook_event_type: string;
+  product_type: string;
+  Product: KiwifyProduct;
+  Customer: KiwifyCustomer;
+  Commissions: KiwifyCommissions;
+  TrackingParameters: KiwifyTrackingParameters;
+  Subscription?: KiwifySubscription;
+  subscription_id?: string;
+  checkout_link: string;
+  access_url: string;
 }
 
-export interface EduzzCustomer {
-  nome: string;
+export interface EduzzAddress {
+  street: string;
+  number: string;
+  neighborhood: string;
+  complement: string;
+  city: string;
+  state: string;
+  country: string;
+  zipCode: string;
+}
+
+export interface EduzzBuyer {
+  id: string;
+  name: string;
+  document: string;
   email: string;
-  cpf?: string;
-  telefone?: string;
+  phone: string;
+  phone2: string;
+  cellphone: string;
+  address: EduzzAddress;
 }
 
-export interface EduzzProduct {
-  cod_produto: number;
-  nome_produto: string;
+export interface EduzzProducer {
+  id: string;
+  name: string;
+  email: string;
+  originSecret: string;
+}
+
+export interface EduzzAffiliate {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface EduzzUtm {
+  source?: string;
+  campaign?: string;
+  medium?: string;
+  content?: string;
+}
+
+export interface EduzzTracker {
+  code1?: string;
+  code2?: string;
+  code3?: string;
+}
+
+export interface EduzzPrice {
+  currency: string;
+  value: number;
+}
+
+export interface EduzzRefundPeriod {
+  durationType: string;
+  value: number;
+}
+
+export interface EduzzCoupon {
+  id: string;
+  key: string;
+  discount: EduzzPrice;
+}
+
+export interface EduzzItem {
+  productId: string;
+  name: string;
+  parentId: string;
+  refundPeriod: EduzzRefundPeriod;
+  price: EduzzPrice;
+  coupon: EduzzCoupon;
+  partnerId: string;
+  billingType: string;
+  skuReference: string;
+}
+
+export interface EduzzTransaction {
+  id: string;
+  key: string;
+}
+
+export interface EduzzStudent {
+  id: string;
+  name: string;
+  document: string;
+  email: string;
+  phone: string;
+  phone2: string;
+  cellphone: string;
+}
+
+export interface EduzzGains {
+  producer: EduzzPrice;
+  coproducer: EduzzPrice;
+  affiliate: EduzzPrice;
+}
+
+export interface EduzzFees {
+  eduzz: EduzzPrice;
+  recovery: EduzzPrice;
+  alumy: EduzzPrice;
+  total: EduzzPrice;
+}
+
+export interface EduzzRefund {
+  type: string;
+  createdAt: string;
+  refundedAt: string;
+  currency: string;
+  value: number;
+  reason: string;
+  refundBy: string;
+}
+
+export interface EduzzChargeback {
+  status: string;
+  createdAt: string;
+  limitDate: string;
+  finishedAt?: string;
+}
+
+export interface EduzzBankSlipInstallment {
+  installmentNumber: number;
+  totalInstallments: number;
+}
+
+export interface EduzzInvoiceData {
+  id: string;
+  status: string;
+  buyer: EduzzBuyer;
+  producer: EduzzProducer;
+  affiliate?: EduzzAffiliate;
+  utm: EduzzUtm;
+  tracker: EduzzTracker;
+  createdAt: string;
+  dueDate: string;
+  barcode?: string;
+  price: EduzzPrice;
+  paid: EduzzPrice;
+  paymentMethod?: string;
+  installments: number;
+  transaction?: EduzzTransaction;
+  items: EduzzItem[];
+  totalItems: number;
+  billetUrl?: string;
+  checkoutUrl?: string;
+  bankslipUrl?: string;
+  paidAt?: string;
+  refundedAt?: string;
+  student: EduzzStudent;
+  gains?: EduzzGains;
+  fees?: EduzzFees;
+  refund?: EduzzRefund;
+  chargeback?: EduzzChargeback;
+  bankSlipInstallment?: EduzzBankSlipInstallment;
 }
 
 export interface EduzzWebhookPayload {
-  evento: string;
-  trans_cod: number;
-  trans_status: string;
-  produto: EduzzProduct;
-  cliente: EduzzCustomer;
-  forma_pagamento: string;
-  data_aprovacao?: string;
-  valor: number;
-  moeda: string;
-  token: string;
+  id: string;
+  event: string;
+  data: EduzzInvoiceData;
+  sentDate: string;
 }
 
 export interface HotmartAddress {
