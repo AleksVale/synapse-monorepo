@@ -429,39 +429,168 @@ export interface EduzzWebhookPayload {
   token: string;
 }
 
+export interface HotmartAddress {
+  zipcode: string;
+  country: string;
+  number: string;
+  address: string;
+  city: string;
+  state: string;
+  neighborhood: string;
+  complement?: string;
+  country_iso: string;
+}
+
 export interface HotmartBuyer {
-  name: string;
   email: string;
-  checkout_phone?: string;
+  name: string;
+  first_name: string;
+  last_name: string;
+  checkout_phone: string;
+  checkout_phone_code: string;
+  document: string;
+  document_type: string;
+  address: HotmartAddress;
+}
+
+export interface HotmartProductContent {
+  has_physical_products: boolean;
+  products: Array<{
+    id: number;
+    ucode: string;
+    name: string;
+    is_physical_product: boolean;
+  }>;
 }
 
 export interface HotmartProduct {
   id: number;
+  ucode: string;
+  name: string;
+  has_co_production: boolean;
+  warranty_date?: string;
+  support_email?: string;
+  is_physical_product: boolean;
+  content?: HotmartProductContent;
+}
+
+export interface HotmartAffiliate {
+  affiliate_code: string;
   name: string;
 }
 
+export interface HotmartProducer {
+  name: string;
+  legal_nature: string;
+  document: string;
+}
+
+export interface HotmartCurrencyConversion {
+  converted_value: number;
+  converted_to_currency: string;
+  conversion_rate: number;
+}
+
+export interface HotmartCommission {
+  value: number;
+  currency_value: string;
+  source: string;
+  currency_conversion?: HotmartCurrencyConversion;
+}
+
+export interface HotmartPrice {
+  value: number;
+  currency_value: string;
+}
+
+export interface HotmartOffer {
+  code: string;
+  coupon_code?: string;
+  name: string;
+  description?: string;
+}
+
+export interface HotmartCheckoutCountry {
+  name: string;
+  iso: string;
+}
+
+export interface HotmartOrigin {
+  xcod?: string;
+}
+
+export interface HotmartOrderBump {
+  is_order_bump: boolean;
+  parent_purchase_transaction?: string;
+}
+
+export interface HotmartPayment {
+  billet_barcode?: string;
+  billet_url?: string;
+  installments_number?: number;
+  pix_code?: string;
+  pix_expiration_date?: number;
+  pix_qrcode?: string;
+  refusal_reason?: string;
+  type: string;
+}
+
+export interface HotmartEventTickets {
+  amount: number;
+}
+
 export interface HotmartPurchase {
-  order_date: number;
   approved_date?: number;
+  full_price: HotmartPrice;
+  original_offer_price?: HotmartPrice;
+  price: HotmartPrice;
+  offer?: HotmartOffer;
+  recurrence_number?: number;
+  subscription_anticipation_purchase?: boolean;
+  checkout_country: HotmartCheckoutCountry;
+  origin?: HotmartOrigin;
+  order_bump?: HotmartOrderBump;
+  order_date: string;
+  date_next_charge?: number;
   status: string;
   transaction: string;
-  payment: {
-    type: string;
-  };
-  price: {
-    value: number;
-    currency_code: string;
-  };
+  payment: HotmartPayment;
+  is_funnel?: boolean;
+  event_tickets?: HotmartEventTickets;
+  business_model?: string;
+}
+
+export interface HotmartSubscriptionPlan {
+  id: number;
+  name: string;
+}
+
+export interface HotmartSubscriber {
+  code: string;
+}
+
+export interface HotmartSubscription {
+  status: string;
+  plan: HotmartSubscriptionPlan;
+  subscriber: HotmartSubscriber;
+}
+
+export interface HotmartWebhookData {
+  product: HotmartProduct;
+  affiliates?: HotmartAffiliate[];
+  buyer: HotmartBuyer;
+  producer: HotmartProducer;
+  commissions?: HotmartCommission[];
+  purchase: HotmartPurchase;
+  subscription?: HotmartSubscription;
 }
 
 export interface HotmartWebhookPayload {
+  id: string;
+  creation_date: number;
   event: string;
   version: string;
-  data: {
-    product: HotmartProduct;
-    buyer: HotmartBuyer;
-    purchase: HotmartPurchase;
-  };
+  data: HotmartWebhookData;
 }
 
 export interface ProcessWebhookDto {

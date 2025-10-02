@@ -107,12 +107,12 @@ export class HotmartStrategy implements IWebhookStrategy {
       platformSaleId: payload.data.purchase.transaction,
       status: 'CONFIRMED',
       amount: payload.data.purchase.price.value,
-      currency: payload.data.purchase.price.currency_code,
+      currency: payload.data.purchase.price.currency_value,
       customerName: payload.data.buyer.name,
       customerEmail: payload.data.buyer.email,
       saleDate: payload.data.purchase.approved_date
         ? new Date(payload.data.purchase.approved_date * 1000)
-        : new Date(payload.data.purchase.order_date * 1000),
+        : new Date(Number(payload.data.purchase.order_date)),
     });
 
     return {
