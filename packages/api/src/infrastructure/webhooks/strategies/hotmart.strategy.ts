@@ -4,11 +4,11 @@ import {
   IntegrationPlatform,
   WebhookEventType,
 } from '../../../../generated/prisma';
-import {
-  IntegrationRepository,
-  ProductRepository,
-  SaleRepository,
-} from '../../repositories';
+import type {
+  IIntegrationRepository,
+  IProductRepository,
+  ISaleRepository,
+} from '../../../domain/repositories';
 import { HotmartValidator } from '../validators/hotmart.validator';
 import type {
   IWebhookStrategy,
@@ -18,9 +18,9 @@ import type {
 @Injectable()
 export class HotmartStrategy implements IWebhookStrategy {
   constructor(
-    private readonly saleRepository: SaleRepository,
-    private readonly productRepository: ProductRepository,
-    private readonly integrationRepository: IntegrationRepository,
+    private readonly saleRepository: ISaleRepository,
+    private readonly productRepository: IProductRepository,
+    private readonly integrationRepository: IIntegrationRepository,
     private readonly validator: HotmartValidator,
   ) {}
 
