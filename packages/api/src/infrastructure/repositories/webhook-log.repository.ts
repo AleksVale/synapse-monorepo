@@ -1,30 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import type {
   IntegrationPlatform,
-  WebhookEventType,
   WebhookLog,
   WebhookStatus,
 } from 'generated/prisma';
+import {
+  IWebhookLogRepository,
+  type CreateWebhookLogData,
+  type UpdateWebhookLogData,
+} from '../../domain/repositories';
 import { PrismaService } from '../database/prisma.service';
 
-export interface CreateWebhookLogData {
-  integrationId?: number;
-  platform: IntegrationPlatform;
-  eventType: WebhookEventType;
-  payload: Record<string, any>;
-  status: WebhookStatus;
-  errorMessage?: string;
-  processedAt?: Date;
-}
-
-export interface UpdateWebhookLogData {
-  status?: WebhookStatus;
-  errorMessage?: string;
-  processedAt?: Date;
-}
-
 @Injectable()
-export class WebhookLogRepository {
+export class WebhookLogRepository implements IWebhookLogRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateWebhookLogData): Promise<WebhookLog> {
@@ -33,7 +21,7 @@ export class WebhookLogRepository {
         integrationId: data.integrationId,
         platform: data.platform,
         eventType: data.eventType,
-        payload: data.payload as any,
+        payload: data.payload,
         status: data.status,
         errorMessage: data.errorMessage,
         processedAt: data.processedAt,

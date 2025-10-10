@@ -1,30 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import type { Sale, SaleStatus } from 'generated/prisma';
+import {
+  ISaleRepository,
+  type CreateSaleData,
+  type UpdateSaleData,
+} from '../../domain/repositories';
 import { PrismaService } from '../database/prisma.service';
 
-export interface CreateSaleData {
-  productId?: number;
-  integrationId?: number;
-  platformSaleId?: string;
-  status: SaleStatus;
-  amount: number;
-  currency: string;
-  customerName?: string;
-  customerEmail?: string;
-  saleDate?: Date;
-}
-
-export interface UpdateSaleData {
-  status?: SaleStatus;
-  amount?: number;
-  currency?: string;
-  customerName?: string;
-  customerEmail?: string;
-  saleDate?: Date;
-}
-
 @Injectable()
-export class SaleRepository {
+export class SaleRepository implements ISaleRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateSaleData): Promise<Sale> {

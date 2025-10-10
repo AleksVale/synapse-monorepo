@@ -1,20 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import type { Product } from 'generated/prisma';
+import {
+  IProductRepository,
+  type CreateProductData,
+  type UpdateProductData,
+} from '../../domain/repositories';
 import { PrismaService } from '../database/prisma.service';
 
-export interface CreateProductData {
-  userId?: number;
-  name: string;
-  description?: string;
-}
-
-export interface UpdateProductData {
-  name?: string;
-  description?: string;
-}
-
 @Injectable()
-export class ProductRepository {
+export class ProductRepository implements IProductRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateProductData): Promise<Product> {

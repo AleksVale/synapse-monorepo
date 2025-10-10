@@ -1,24 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import type { Integration } from 'generated/prisma';
+import {
+  IIntegrationRepository,
+  type CreateIntegrationData,
+  type UpdateIntegrationData,
+} from '../../domain/repositories';
 import { PrismaService } from '../database/prisma.service';
 
-export interface CreateIntegrationData {
-  userId?: number;
-  platformName: string;
-  apiKey?: string;
-  status: string;
-  lastSyncAt?: Date;
-}
-
-export interface UpdateIntegrationData {
-  platformName?: string;
-  apiKey?: string;
-  status?: string;
-  lastSyncAt?: Date;
-}
-
 @Injectable()
-export class IntegrationRepository {
+export class IntegrationRepository implements IIntegrationRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: number): Promise<Integration | null> {

@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import type { CreateUserDto, User } from '@synapse/shared-types';
+import { IUserRepository } from '../../domain/repositories';
 import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
-export class UserRepository {
+export class UserRepository implements IUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findByEmail(email: string): Promise<User | null> {
