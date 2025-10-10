@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from '../../application/services/auth.service';
 import { CryptoService } from '../../application/services/crypto.service';
+import { IUserRepository } from '../../domain/repositories';
 import { AuthController } from '../../presentation/controllers/auth.controller';
 import { UserRepository } from '../repositories/user.repository';
 import { JwtStrategy } from './jwt.strategy';
@@ -17,11 +18,15 @@ import { LocalStrategy } from './local.strategy';
     }),
   ],
   providers: [
+    // Repository provider
+    {
+      provide: IUserRepository,
+      useClass: UserRepository,
+    },
     AuthService,
     CryptoService,
     LocalStrategy,
     JwtStrategy,
-    UserRepository,
   ],
   controllers: [AuthController],
   exports: [AuthService, CryptoService],
