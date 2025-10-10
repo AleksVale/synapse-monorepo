@@ -49,3 +49,5 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
+
+generated
