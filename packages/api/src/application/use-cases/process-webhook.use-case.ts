@@ -3,7 +3,7 @@ import {
   IntegrationPlatform,
   WebhookEventType,
 } from '../../../generated/prisma';
-import { IntegrationRepository } from '../../infrastructure/repositories';
+import type { IIntegrationRepository } from '../../domain/repositories';
 import {
   EduzzStrategy,
   HotmartStrategy,
@@ -17,7 +17,7 @@ export class ProcessWebhookUseCase {
   private strategies: Map<IntegrationPlatform, IWebhookStrategy>;
 
   constructor(
-    private readonly integrationRepository: IntegrationRepository,
+    private readonly integrationRepository: IIntegrationRepository,
     private readonly kiwifyStrategy: KiwifyStrategy,
     private readonly eduzzStrategy: EduzzStrategy,
     private readonly hotmartStrategy: HotmartStrategy,

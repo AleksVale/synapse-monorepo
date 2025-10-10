@@ -7,7 +7,7 @@ import {
   LoginDto,
   User,
 } from '@synapse/shared-types';
-import { UserRepository } from '../../infrastructure/repositories/user.repository';
+import type { IUserRepository } from '../../domain/repositories';
 import { CryptoService } from './crypto.service';
 
 export interface JwtPayload {
@@ -19,7 +19,7 @@ export interface JwtPayload {
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly userRepository: UserRepository,
+    private readonly userRepository: IUserRepository,
     private readonly jwtService: JwtService,
     private readonly cryptoService: CryptoService,
   ) {}
