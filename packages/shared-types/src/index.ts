@@ -71,14 +71,14 @@ export interface Product {
 
 export interface Integration {
   id: number;
-  userId?: number;
+  userId?: number | null;
   platformName: string;
-  apiKey?: string;
+  apiKey?: string | null;
   status: string;
-  lastSyncAt?: Date;
+  lastSyncAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
-  user?: User;
+  user?: User | null;
 }
 
 export interface AdCampaign {
@@ -195,6 +195,34 @@ export interface UpdateIntegrationDto {
   apiKey?: string;
   status?: string;
   lastSyncAt?: Date;
+}
+
+export interface IntegrationListItemDto {
+  id: number;
+  platformName: string;
+  status: string;
+  lastSyncAt?: Date | null;
+  createdAt: Date;
+  isHealthy: boolean;
+  syncStatus: 'idle' | 'syncing' | 'error';
+}
+
+export interface IntegrationDetailsDto extends Integration {
+  totalSales: number;
+  totalRevenue: number;
+  lastSuccessfulSync?: Date;
+  errorCount: number;
+  products?: Product[];
+}
+
+export interface ListIntegrationsResponseDto
+  extends ApiResponse<IntegrationListItemDto[]> {
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export interface CreateAdCampaignDto {
