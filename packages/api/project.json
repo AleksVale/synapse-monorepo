@@ -17,6 +17,11 @@
             "glob": "**/*",
             "input": "packages/api/src/assets",
             "output": "./assets"
+          },
+          {
+            "glob": "**/*",
+            "input": "packages/api/generated",
+            "output": "./generated"
           }
         ]
       },
