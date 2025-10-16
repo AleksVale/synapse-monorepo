@@ -9,6 +9,10 @@ dist/
 build/
 *.tsbuildinfo
 
+# Nx
+.nx/
+.nx/cache
+
 # Environment variables
 .env
 .env.local
@@ -55,3 +59,8 @@ generated
 tmp
 
 .nx
+
+
+.nx/workspace-data
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md

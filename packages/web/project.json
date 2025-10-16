@@ -41,6 +41,13 @@
         }
       }
     },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vite",
+        "cwd": "packages/web"
+      }
+    },
     "preview": {
       "executor": "@nx/vite:preview-server",
       "defaultConfiguration": "development",

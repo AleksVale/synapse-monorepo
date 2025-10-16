@@ -18,20 +18,11 @@
     "emitDecoratorMetadata": true,
     "baseUrl": ".",
     "paths": {
-      "@synapse/shared-types": ["packages/shared-types/src"],
-      "@synapse/shared-types/*": ["packages/shared-types/src/*"]
+      "@synapse/shared-types": ["packages/shared-types/src/index.ts"]
     }
   },
-  "include": [
-    "packages/*/src/**/*",
-    "packages/*/test/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build",
-    "coverage"
-  ],
+  "include": ["packages/*/src/**/*", "packages/*/test/**/*"],
+  "exclude": ["node_modules", "dist", "build", "coverage"],
   "references": [
     {
       "path": "./packages/shared-types"

@@ -3,34 +3,21 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/shared-types/src",
   "projectType": "library",
-  "tags": ["scope:shared", "type:lib"],
+  "tags": ["scope:shared", "type:library"],
   "targets": {
     "build": {
-      "executor": "@nx/js:tsc",
-      "outputs": ["{options.outputPath}"],
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/dist"],
       "options": {
-        "outputPath": "dist/packages/shared-types",
-        "main": "packages/shared-types/src/index.ts",
-        "tsConfig": "packages/shared-types/tsconfig.json",
-        "assets": [
-          {
-            "glob": "package.json",
-            "input": "packages/shared-types",
-            "output": "."
-          },
-          {
-            "glob": "README.md",
-            "input": "packages/shared-types",
-            "output": "."
-          }
-        ]
+        "command": "tsc",
+        "cwd": "packages/shared-types"
       }
     },
-    "lint": {
-      "executor": "@nx/eslint:lint",
-      "outputs": ["{options.outputFile}"],
+    "dev": {
+      "executor": "nx:run-commands",
       "options": {
-        "lintFilePatterns": ["packages/shared-types/**/*.ts"]
+        "command": "tsc --watch",
+        "cwd": "packages/shared-types"
       }
     },
     "type-check": {
@@ -40,10 +27,17 @@
         "cwd": "packages/shared-types"
       }
     },
-    "test": {
+    "lint": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "echo 'No tests defined for shared-types'",
+        "command": "eslint src",
+        "cwd": "packages/shared-types"
+      }
+    },
+    "clean": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "rm -rf dist",
         "cwd": "packages/shared-types"
       }
     }
