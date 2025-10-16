@@ -59,14 +59,18 @@ export interface User {
 }
 
 export interface Product {
-  id: number;
-  userId?: number;
+  id: string;
   name: string;
   description?: string;
+  userId: string;
+  price: number;
+  currency: string;
+  category?: string;
+  status: 'active' | 'inactive' | 'draft';
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date;
-  user?: User;
 }
 
 export interface Integration {
@@ -175,12 +179,72 @@ export interface UpdateUserDto {
 export interface CreateProductDto {
   name: string;
   description?: string;
-  userId?: number;
+  price?: number;
+  currency?: string;
+  category?: string;
+  status?: 'active' | 'inactive' | 'draft';
+  metadata?: Record<string, unknown>;
 }
 
 export interface UpdateProductDto {
   name?: string;
   description?: string;
+  price?: number;
+  currency?: string;
+  category?: string;
+  status?: 'active' | 'inactive' | 'draft';
+  metadata?: Record<string, unknown>;
+}
+
+export interface ProductListItemDto {
+  id: number;
+  name: string;
+  description?: string;
+  price?: number;
+  currency?: string;
+  category?: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  salesCount: number;
+  totalRevenue: number;
+  integrations: {
+    id: number;
+    platformName: string;
+    status: string;
+  }[];
+}
+
+export interface ProductDetailsDto extends Product {
+  salesCount: number;
+  totalRevenue: number;
+  averageTicket: number;
+  conversionRate?: number;
+  integrations: {
+    id: number;
+    platformName: string;
+    status: string;
+    salesCount: number;
+    revenue: number;
+  }[];
+  recentSales: {
+    id: number;
+    amount: number;
+    currency: string;
+    customerName?: string;
+    saleDate: Date;
+    platformName: string;
+  }[];
+}
+
+export interface ListProductsResponseDto
+  extends ApiResponse<ProductListItemDto[]> {
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export interface CreateIntegrationDto {

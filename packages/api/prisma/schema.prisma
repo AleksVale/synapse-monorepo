@@ -83,6 +83,11 @@ model Product {
   userId      Int?      @map("user_id")
   name        String    @db.VarChar(255)
   description String?   @db.Text
+  price       Decimal?  @db.Decimal(10, 2)
+  currency    String?   @default("BRL") @db.VarChar(3)
+  category    String?   @db.VarChar(100)
+  status      String    @default("active") @db.VarChar(20)
+  metadata    Json?
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
