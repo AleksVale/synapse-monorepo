@@ -59,14 +59,14 @@ export interface User {
 }
 
 export interface Product {
-  id: string;
+  id: number;
   name: string;
   description?: string;
-  userId: string;
-  price: number;
-  currency: string;
+  userId?: number;
+  price?: number;
+  currency?: string;
   category?: string;
-  status: 'active' | 'inactive' | 'draft';
+  status: string;
   metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;

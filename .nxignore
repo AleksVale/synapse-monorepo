@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+coverage
+.env
+.env.local
+*.log
+packages/api/generated
+packages/api/prisma/migrations

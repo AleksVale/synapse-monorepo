@@ -60,7 +60,7 @@ export class IntegrationController {
   async createIntegration(
     @Request() req: AuthenticatedRequest,
     @Body() createIntegrationDto: CreateIntegrationDto,
-  ): Promise<ApiResponse<Integration>> {
+  ): Promise<ApiResponse<Integration | null>> {
     try {
       const integration = await this.createIntegrationUseCase.execute(
         req.user.userId,

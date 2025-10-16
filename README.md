@@ -1,6 +1,6 @@
 # Synapse Monorepo
 
-Um monorepo moderno com React/Vite para o frontend, NestJS para a API e tipos compartilhados em TypeScript.
+Um monorepo moderno gerenciado por **Nx** com React/Vite para o frontend, NestJS para a API e tipos compartilhados em TypeScript.
 
 ## 🏗️ Estrutura do Projeto
 
@@ -10,6 +10,7 @@ synapse-monorepo/
 │   ├── web/              # React + Vite (Frontend)
 │   ├── api/              # NestJS (Backend API)
 │   └── shared-types/     # Tipos TypeScript compartilhados
+├── nx.json               # Configuração Nx
 ├── package.json          # Configuração do workspace
 └── tsconfig.json         # Configuração TypeScript global
 ```
@@ -23,9 +24,6 @@ synapse-monorepo/
 ### Instalação
 ```bash
 # Instalar dependências de todos os packages
-npm run install:all
-
-# Ou simplesmente
 npm install
 ```
 
@@ -45,9 +43,30 @@ npm run dev:api    # Backend na porta 3001
 npm run build
 
 # Build individual
-npm run build -w @synapse/web
-npm run build -w @synapse/api
-npm run build -w @synapse/shared-types
+npm run build:web
+npm run build:api
+npm run build:shared-types
+
+# Ou usando nx diretamente
+nx build web
+nx build api
+```
+
+### Comandos Nx Úteis
+
+```bash
+# Visualizar grafo de dependências
+npm run graph
+
+# Executar apenas o que foi afetado por mudanças
+npm run affected:build
+npm run affected:test
+
+# Ver todos os projetos
+nx show projects
+
+# Limpar cache do Nx
+nx reset
 ```
 
 ## 📦 Packages
@@ -64,6 +83,7 @@ npm run build -w @synapse/shared-types
 - **Porta**: 3001
 - **Prefix**: `/api`
 - **CORS**: Habilitado para `http://localhost:3000`
+- **Database**: Prisma + PostgreSQL
 
 ### @synapse/shared-types
 - **Tipos compartilhados** entre web e api
@@ -73,31 +93,50 @@ npm run build -w @synapse/shared-types
 ## 🛠️ Scripts Disponíveis
 
 ### Root (Workspace)
-- `npm run dev` - Executa web e api em desenvolvimento
-- `npm run build` - Build de todos os packages
+- `npm run dev` - Executa web e api em desenvolvimento (paralelo)
+- `npm run build` - Build de todos os packages (com cache Nx)
+- `npm run test` - Testa todos os packages
 - `npm run lint` - Lint de todos os packages
 - `npm run lint:fix` - Fix automático de lint
-- `npm run clean` - Limpa node_modules e builds
 - `npm run type-check` - Verificação de tipos
+- `npm run clean` - Limpa cache, dist e node_modules
+- `npm run graph` - Visualiza grafo de dependências
 
 ### Desenvolvimento Individual
 - `npm run dev:web` - Apenas frontend
 - `npm run dev:api` - Apenas backend
+- `npm run build:web` - Build do frontend
+- `npm run build:api` - Build do backend
+
+### Database (Prisma)
+- `npm run db:generate` - Gera Prisma Client
+- `npm run db:push` - Push schema para o DB
+- `npm run db:migrate` - Executa migrations
+- `npm run db:studio` - Abre Prisma Studio
+
+### Affected (Executar apenas o que mudou)
+- `npm run affected` - Mostra projetos afetados
+- `npm run affected:build` - Build apenas do que mudou
+- `npm run affected:test` - Testa apenas o que mudou
 
 ## 🔧 Tecnologias
 
+- **Monorepo Manager**: Nx
 - **Frontend**: React, Vite, TypeScript
-- **Backend**: NestJS, TypeScript
-- **Monorepo**: npm workspaces
+- **Backend**: NestJS, TypeScript, Prisma
+- **Database**: PostgreSQL
 - **Linting**: ESLint + Prettier
 - **Types**: TypeScript com project references
+- **Package Manager**: npm workspaces
 
-## 📝 Próximos Passos
+## 🎯 Benefícios do Nx
 
-- [ ] Configurar banco de dados (TypeORM + SQLite)
-- [ ] Implementar autenticação JWT
-- [ ] Adicionar testes (Jest + Testing Library)
-- [ ] Setup de CI/CD
+- ✅ **Cache Inteligente**: Builds e testes mais rápidos
+- ✅ **Affected Commands**: Execute apenas o que mudou
+- ✅ **Grafo de Dependências**: Visualize relações entre projetos
+- ✅ **Paralelização**: Execução paralela de tarefas
+- ✅ **Generators**: Scaffolding automático de código
+- ✅ **Melhor DX**: Ferramentas e plugins otimizados
 - [ ] Docker para desenvolvimento
 - [ ] Documentação da API (Swagger)
 

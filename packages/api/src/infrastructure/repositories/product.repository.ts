@@ -17,6 +17,11 @@ export class ProductRepository implements IProductRepository {
         userId: data.userId,
         name: data.name,
         description: data.description,
+        price: data.price,
+        currency: data.currency ?? 'BRL',
+        category: data.category,
+        status: data.status ?? 'draft',
+        metadata: data.metadata as any,
       },
     });
   }
@@ -46,6 +51,11 @@ export class ProductRepository implements IProductRepository {
       data: {
         name: data.name,
         description: data.description,
+        price: data.price,
+        currency: data.currency,
+        category: data.category,
+        status: data.status,
+        metadata: data.metadata as any,
       },
     });
   }
@@ -61,5 +71,27 @@ export class ProductRepository implements IProductRepository {
     return this.prisma.product.count({
       where: { userId, deletedAt: null },
     });
+  }
+
+  async findPaginated(
+    userId: number,
+    page: number,
+    limit: number,
+  ): Promise<{ products: Product[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    const [products, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where: { userId, deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.product.count({
+        where: { userId, deletedAt: null },
+      }),
+    ]);
+
+    return { products, total };
   }
 }
