@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { HotmartWebhookPayload } from '@synapse/shared-types';
 import {
   IntegrationPlatform,
   WebhookEventType,
 } from '../../../../generated/prisma';
-import type {
+import {
   IIntegrationRepository,
   IProductRepository,
   ISaleRepository,
@@ -18,8 +18,11 @@ import type {
 @Injectable()
 export class HotmartStrategy implements IWebhookStrategy {
   constructor(
+    @Inject(ISaleRepository)
     private readonly saleRepository: ISaleRepository,
+    @Inject(IProductRepository)
     private readonly productRepository: IProductRepository,
+    @Inject(IIntegrationRepository)
     private readonly integrationRepository: IIntegrationRepository,
     private readonly validator: HotmartValidator,
   ) {}

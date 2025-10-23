@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type {
   IntegrationListItemDto,
   ListIntegrationsResponseDto,
 } from '@synapse/shared-types';
-import type {
+import {
   IIntegrationRepository,
   ISaleRepository,
 } from '../../domain/repositories';
@@ -11,7 +11,9 @@ import type {
 @Injectable()
 export class ListUserIntegrationsUseCase {
   constructor(
+    @Inject(IIntegrationRepository)
     private readonly integrationRepository: IIntegrationRepository,
+    @Inject(ISaleRepository)
     private readonly saleRepository: ISaleRepository,
   ) {}
 

@@ -1,11 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { Product, UpdateProductDto } from '@synapse/shared-types';
-import type { IProductRepository } from '../../domain/repositories';
+import { IProductRepository } from '../../domain/repositories';
 import { ProductMapper } from '../../infrastructure/mappers/product.mapper';
 
 @Injectable()
 export class UpdateProductUseCase {
-  constructor(private readonly productRepository: IProductRepository) {}
+  constructor(
+    @Inject(IProductRepository)
+    private readonly productRepository: IProductRepository,
+  ) {}
 
   async execute(
     id: number,

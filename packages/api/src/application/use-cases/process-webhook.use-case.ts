@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   IntegrationPlatform,
   WebhookEventType,
 } from '../../../generated/prisma';
-import type { IIntegrationRepository } from '../../domain/repositories';
+import { IIntegrationRepository } from '../../domain/repositories';
 import {
   EduzzStrategy,
   HotmartStrategy,
@@ -17,6 +17,7 @@ export class ProcessWebhookUseCase {
   private strategies: Map<IntegrationPlatform, IWebhookStrategy>;
 
   constructor(
+    @Inject(IIntegrationRepository)
     private readonly integrationRepository: IIntegrationRepository,
     private readonly kiwifyStrategy: KiwifyStrategy,
     private readonly eduzzStrategy: EduzzStrategy,

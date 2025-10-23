@@ -1,10 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { CreateIntegrationDto, Integration } from '@synapse/shared-types';
-import type { IIntegrationRepository } from '../../domain/repositories';
+import { IIntegrationRepository } from '../../domain/repositories';
 
 @Injectable()
 export class CreateIntegrationUseCase {
-  constructor(private readonly integrationRepository: IIntegrationRepository) {}
+  constructor(
+    @Inject(IIntegrationRepository)
+    private readonly integrationRepository: IIntegrationRepository,
+  ) {}
 
   async execute(
     userId: number,

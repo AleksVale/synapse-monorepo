@@ -1,9 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import type { IIntegrationRepository } from '../../domain/repositories';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { IIntegrationRepository } from '../../domain/repositories';
 
 @Injectable()
 export class DeleteIntegrationUseCase {
-  constructor(private readonly integrationRepository: IIntegrationRepository) {}
+  constructor(
+    @Inject(IIntegrationRepository)
+    private readonly integrationRepository: IIntegrationRepository,
+  ) {}
 
   async execute(integrationId: number, userId: number): Promise<void> {
     const integration =

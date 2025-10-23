@@ -1,10 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { Integration, UpdateIntegrationDto } from '@synapse/shared-types';
-import type { IIntegrationRepository } from '../../domain/repositories';
+import { IIntegrationRepository } from '../../domain/repositories';
 
 @Injectable()
 export class UpdateIntegrationUseCase {
-  constructor(private readonly integrationRepository: IIntegrationRepository) {}
+  constructor(
+    @Inject(IIntegrationRepository)
+    private readonly integrationRepository: IIntegrationRepository,
+  ) {}
 
   async execute(
     integrationId: number,

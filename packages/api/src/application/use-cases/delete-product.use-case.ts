@@ -1,9 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import type { IProductRepository } from '../../domain/repositories';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { IProductRepository } from '../../domain/repositories';
 
 @Injectable()
 export class DeleteProductUseCase {
-  constructor(private readonly productRepository: IProductRepository) {}
+  constructor(
+    @Inject(IProductRepository)
+    private readonly productRepository: IProductRepository,
+  ) {}
 
   async execute(id: number, userId: number): Promise<void> {
     const existingProduct = await this.productRepository.findById(id);

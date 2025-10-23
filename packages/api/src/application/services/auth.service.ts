@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import {
   ApiResponse,
@@ -7,7 +7,7 @@ import {
   LoginDto,
   User,
 } from '@synapse/shared-types';
-import type { IUserRepository } from '../../domain/repositories';
+import { IUserRepository } from '../../domain/repositories';
 import { CryptoService } from './crypto.service';
 
 export interface JwtPayload {
@@ -19,6 +19,7 @@ export interface JwtPayload {
 @Injectable()
 export class AuthService {
   constructor(
+    @Inject(IUserRepository)
     private readonly userRepository: IUserRepository,
     private readonly jwtService: JwtService,
     private readonly cryptoService: CryptoService,

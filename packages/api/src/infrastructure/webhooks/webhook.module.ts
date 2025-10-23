@@ -8,6 +8,7 @@ import {
   IWebhookLogRepository,
 } from '../../domain/repositories';
 import { WebhookController } from '../../presentation/controllers/webhook.controller';
+import { PrismaModule } from '../database/prisma.module';
 import {
   IntegrationRepository,
   ProductRepository,
@@ -22,6 +23,7 @@ import {
 } from './validators';
 
 @Module({
+  imports: [PrismaModule],
   providers: [
     // Repository providers (abstract class -> concrete implementation)
     {
